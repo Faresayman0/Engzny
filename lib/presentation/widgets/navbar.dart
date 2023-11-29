@@ -1,3 +1,4 @@
+import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:gradution_project2/presentation/screens/pages/home_page.dart';
 import 'package:gradution_project2/presentation/screens/pages/profie_page.dart';
@@ -8,68 +9,55 @@ class Navbar extends StatefulWidget {
   const Navbar({super.key});
 
   @override
-  State<Navbar> createState() => _NavbarState();
+  _NavbarState createState() => _NavbarState();
 }
 
 class _NavbarState extends State<Navbar> {
   int currentIndex = 0;
   List<Widget> screens = [
-    HomePage(),
+    const HomePage(),
     const RatePage(),
     const ReportPage(),
     ProfilePage(),
   ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: const Color(0xff2074EF),
-        currentIndex: currentIndex,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.white,
-        selectedFontSize: 16,
-        selectedIconTheme: const IconThemeData(size: 30),
-        unselectedItemColor: Colors.white,
-        unselectedIconTheme: const IconThemeData(size: 20, color: Colors.white),
-        onTap: (index) {
-          setState(
-            () {
-              currentIndex = index;
-            },
-          );
-        },
+      bottomNavigationBar: CurvedNavigationBar(
+        animationDuration: const Duration(milliseconds: 600),
+        backgroundColor: Colors.white,
+        buttonBackgroundColor: Colors.white,
+        color: const Color(0xff2074EF),
+        height: 50,
+        index: currentIndex,
         items: const [
-          BottomNavigationBarItem(
-            activeIcon: Icon(Icons.home),
-            icon: Icon(
-              Icons.home_outlined,
-            ),
-            label: 'الرئيسية',
-          ),
-          BottomNavigationBarItem(
-            activeIcon: Icon(Icons.star),
-            icon: Icon(
-              Icons.star_border_outlined,
-            ),
-            label: 'التفيم',
-          ),
-          BottomNavigationBarItem(
-            activeIcon: Icon(Icons.help),
-            icon: Icon(
-              Icons.help_outline_outlined,
-            ),
-            label: 'شكوي ',
-          ),
-          BottomNavigationBarItem(
-            activeIcon: Icon(Icons.person),
-            icon: Icon(
-              Icons.person_2_outlined,
-            ),
-            label: 'حسابي',
-          )
+          Icon(Icons.home_outlined, size: 30),
+          Icon(Icons.star_border, size: 30,),
+          Icon(Icons.announcement_outlined, size: 30),
+          Icon(Icons.person_2_outlined, size: 30),
         ],
+        onTap: (index) {
+          setState(() {
+            currentIndex = index;
+          });
+        },
       ),
       body: screens[currentIndex],
+    );
+  }
+}
+
+// Usage
+class YourApp extends StatelessWidget {
+  const YourApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      home: Scaffold(
+        body: Navbar(),
+      ),
     );
   }
 }

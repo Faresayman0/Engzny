@@ -20,9 +20,9 @@ class AppRouter {
         return MaterialPageRoute(
             builder: (_) => BlocProvider<PhoneAuthCubit>.value(
                   value: phoneAuthCubit!,
-                  child:  const HomePage(),
+                  child: const HomePage(),
                 ));
- case loginScreen:
+      case loginScreen:
         return MaterialPageRoute(
             builder: (_) => BlocProvider<PhoneAuthCubit>.value(
                   value: phoneAuthCubit!,
@@ -30,19 +30,21 @@ class AppRouter {
                 ));
 
       case otpScreen:
-      final phoneNumber=settings.arguments;
+        final phoneNumber = settings.arguments;
         return MaterialPageRoute(
             builder: (_) => BlocProvider.value(
                   value: phoneAuthCubit!,
-                  child: OtpScreen(phoneNumber: phoneNumber,),
+                  child: OtpScreen(
+                    phoneNumber: phoneNumber,
+                  ),
                 ));
-       case navBar:
+      case navBar:
         return MaterialPageRoute(
             builder: (_) => BlocProvider<PhoneAuthCubit>.value(
                   value: phoneAuthCubit!,
-                  child: const Navbar(),
+                  child: Navbar(),
                 ));
-       case choseLogin:
+      case choseLogin:
         return MaterialPageRoute(
             builder: (_) => BlocProvider<PhoneAuthCubit>.value(
                   value: phoneAuthCubit!,
