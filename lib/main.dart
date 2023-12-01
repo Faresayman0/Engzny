@@ -17,13 +17,11 @@ void main(List<String> args) async {
   );
   FirebaseAuth.instance.authStateChanges().listen((user) {
     if (user == null) {
-      intialRoute = choseLogin;
+      intialRoute = animitedSplashScreen;
     } else {
       intialRoute = navBar;
     }
   });
-  appVerificationDisabledForTesting:
-  false;
 
   runApp(GradutionProject(
     appRouter: AppRouter(),
@@ -42,6 +40,7 @@ class GradutionProject extends StatelessWidget {
     return BlocProvider<PhoneAuthCubit>.value(
       value: phoneAuthCubit,
       child: MaterialApp(
+        theme: ThemeData(fontFamily: "LamaSans",),
         debugShowCheckedModeBanner: false,
         home: const ChoseLogin(),
         onGenerateRoute: appRouter.generateRoute,

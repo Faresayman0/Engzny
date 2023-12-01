@@ -1,15 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_launcher_icons/xml_templates.dart';
 import 'package:gradution_project2/bussines_logic/cubit/phone_auth_cubit.dart';
 import 'package:gradution_project2/constant/my_color.dart';
 import 'package:gradution_project2/constant/strings.dart';
 import 'package:gradution_project2/presentation/widgets/constant_widget.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
   late String phoneNumber;
+
   GlobalKey<FormState> phoneFormKey = GlobalKey();
-  LoginScreen({super.key});
+
   TextEditingController phoneController = TextEditingController();
+
+  bool isLoadin = false;
 
   Widget _buildFormFeild() {
     return Row(
@@ -25,7 +36,7 @@ class LoginScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10)),
             child: Text(
               "${generateCountryFlag()} +20",
-              style: const TextStyle(fontSize: 18, letterSpacing: 2),
+              style: const TextStyle(fontSize: 18, letterSpacing: 1),
             ),
           ),
         ),
@@ -33,28 +44,32 @@ class LoginScreen extends StatelessWidget {
           width: 10,
         ),
         Expanded(
-
           flex: 3,
           child: Container(
-              decoration: BoxDecoration(
-                  
-                  borderRadius: BorderRadius.circular(10)),
+              decoration:
+                  BoxDecoration(borderRadius: BorderRadius.circular(10)),
               child: TextFormField(
-                
                 maxLength: 11,
                 controller: phoneController,
                 cursorColor: Colors.black,
                 style: const TextStyle(fontSize: 18, letterSpacing: 2),
                 autofocus: true,
                 keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder()
-                ),
+                decoration:  const InputDecoration(
+                  labelText: " رقم الهاتف",
+                    focusColor: Colors.blue,
+                    focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue, width: 2)),
+                    border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue))),
                 validator: (value) {
                   if (value!.isEmpty) {
                     return "ادخل رقم هاتفك";
                   } else if (value.length < 11) {
                     return "اكمل باقي الرقم";
+                  }
+                  if (value == 11) {
+                    _register;
                   }
                   return null;
                 },
@@ -97,7 +112,7 @@ class LoginScreen extends StatelessWidget {
           backgroundColor: MyColor.blue,
           minimumSize: const Size(double.infinity, 50)),
       child: const Text(
-        "Next",
+        "التالي",
         style: TextStyle(
           color: Colors.white,
         ),
@@ -136,7 +151,9 @@ class LoginScreen extends StatelessWidget {
         if (stat is PhoneNumberSubmited) {
           Navigator.pop(context);
           Navigator.of(context).pushNamed(
-              otpScreen, arguments: phoneNumber,);
+            otpScreen,
+            arguments: phoneNumber,
+          );
         }
         if (stat is ErrorOccurred) {
           Navigator.pop(context);

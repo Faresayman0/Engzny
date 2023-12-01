@@ -6,6 +6,7 @@ import 'package:gradution_project2/presentation/screens/auth/login_screen.dart';
 import 'package:gradution_project2/presentation/screens/auth/otp_screen.dart';
 import 'package:gradution_project2/presentation/screens/pages/chose_login.dart';
 import 'package:gradution_project2/presentation/screens/pages/home_page.dart';
+import 'package:gradution_project2/presentation/screens/pages/splash_screen.dart';
 import 'package:gradution_project2/presentation/widgets/navbar.dart';
 
 class AppRouter {
@@ -46,9 +47,16 @@ class AppRouter {
                 ));
       case choseLogin:
         return MaterialPageRoute(
+          builder: (_) => BlocProvider<PhoneAuthCubit>.value(
+            value: phoneAuthCubit!,
+            child: const ChoseLogin(),
+          ),
+        );
+      case animitedSplashScreen:
+        return MaterialPageRoute(
             builder: (_) => BlocProvider<PhoneAuthCubit>.value(
                   value: phoneAuthCubit!,
-                  child: const ChoseLogin(),
+                  child: const AnimitedSplashScreen(),
                 ));
     }
     return null;

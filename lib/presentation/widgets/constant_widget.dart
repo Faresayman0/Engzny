@@ -13,7 +13,7 @@ class ConstantWidget extends StatelessWidget {
             const SizedBox(
               height: 10,
             ),
-            Image.asset("asset/images/splash screen.png"),
+            Image.asset("asset/images/consticon.png"),
             const SizedBox(
               height: 8,
             ),

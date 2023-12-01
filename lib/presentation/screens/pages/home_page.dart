@@ -14,9 +14,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-    String? selectedCity;
+  String? selectedCity;
 
- Map cityDestinations = {
+  Map cityDestinations = {
     'الفيوم': [
       {
         "حلوان": {
@@ -25,21 +25,24 @@ class _HomePageState extends State<HomePage> {
           "التقييم": "4.2",
           "عددالعربيات": "10/6"
         }
-      },{
+      },
+      {
         "حلوان": {
           "سعر الاجره": 4,
           "نمرة السيارة": "ا ب ج 456",
           "التقييم": "4.2",
           "عددالعربيات": "10/6"
         }
-      },{
+      },
+      {
         "حلوان": {
           "سعر الاجره": 4,
           "نمرة السيارة": "ا ب ج 456",
           "التقييم": "4.2",
           "عددالعربيات": "10/6"
         }
-      },{
+      },
+      {
         "حلوان": {
           "سعر الاجره": 4,
           "نمرة السيارة": "ا ب ج 456",
@@ -113,31 +116,33 @@ class _HomePageState extends State<HomePage> {
   };
 
   @override
-  PhoneAuthCubit phoneAuthCubit = PhoneAuthCubit();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(automaticallyImplyLeading: false,actions: [
-          BlocProvider(
-            create: (context) => PhoneAuthCubit(),
-            child: IconButton(
-                onPressed: () async {
-                  GoogleSignIn googleSignIn=GoogleSignIn();
-                  googleSignIn.disconnect();
-                  await phoneAuthCubit.logOut();
-                  Navigator.of(context).pushReplacementNamed(choseLogin);
-                },
-                icon: const Icon(Icons.logout)),
-          )
-        ]),
+      appBar: AppBar(automaticallyImplyLeading: false, actions: [
+        BlocProvider(
+          create: (context) => PhoneAuthCubit(),
+          child: IconButton(
+              onPressed: () async {
+                PhoneAuthCubit phoneAuthCubit = PhoneAuthCubit();
+                GoogleSignIn googleSignIn = GoogleSignIn();
+                googleSignIn.disconnect();
+                await FirebaseAuth.instance.signOut();
+                await phoneAuthCubit.logOut();
+                Navigator.of(context).pushReplacementNamed(choseLogin);
+                
+                
+              },
+              icon: const Icon(Icons.logout)),
+        )
+      ]),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-               const SizedBox(
+              const SizedBox(
                 height: 200,
                 child: ConstantWidget(),
               ),
