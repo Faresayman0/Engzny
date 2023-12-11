@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_launcher_icons/xml_templates.dart';
 import 'package:gradution_project2/bussines_logic/cubit/phone_auth_cubit.dart';
 import 'package:gradution_project2/constant/my_color.dart';
 import 'package:gradution_project2/constant/strings.dart';
@@ -46,38 +45,39 @@ class _LoginScreenState extends State<LoginScreen> {
         Expanded(
           flex: 3,
           child: Container(
-              decoration:
-                  BoxDecoration(borderRadius: BorderRadius.circular(10)),
-              child: TextFormField(
-                maxLength: 11,
-                controller: phoneController,
-                cursorColor: Colors.black,
-                style: const TextStyle(fontSize: 18, letterSpacing: 2),
-                autofocus: true,
-                keyboardType: TextInputType.phone,
-                decoration:  const InputDecoration(
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
+            child: TextFormField(
+              maxLength: 11,
+              controller: phoneController,
+              cursorColor: Colors.black,
+              style: const TextStyle(fontSize: 18, letterSpacing: 2),
+              autofocus: true,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(
                   labelText: " رقم الهاتف",
-                    focusColor: Colors.blue,
-                    focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.blue, width: 2)),
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.blue))),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return "ادخل رقم هاتفك";
-                  } else if (value.length < 11) {
-                    return "اكمل باقي الرقم";
-                  }
-                  if (value == 11) {
-                    _register;
-                  }
-                  return null;
-                },
-                onSaved: (value) {
-                  phoneNumber = value!;
-                },
-              )),
-        )
+                  focusColor: Colors.blue,
+                  focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue, width: 2)),
+                  border: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue))),
+              validator: (value) {
+                if (value!.isEmpty) {
+                  return "ادخل رقم هاتفك";
+                } else if (value.length < 11) {
+                  
+                  return "اكمل باقي الرقم";
+                  
+                }
+
+                return null;
+              },
+              onSaved: (value) {
+                phoneNumber = value!;
+              },
+              autofillHints: const [AutofillHints.telephoneNumber],
+            ),
+          ),
+        ),
       ],
     );
   }

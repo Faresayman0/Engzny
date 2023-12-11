@@ -84,6 +84,7 @@ class _OtpScreenState extends State<OtpScreen> {
   Widget _buildPinCodeFields(BuildContext context) {
     return Container(
       child: PinCodeTextField(
+        enablePinAutofill: true,
         validator: (String? val) {
           if (val == null || val.isEmpty || val.length < 6) {
             return "ادخل كل الارقام ";
@@ -169,7 +170,6 @@ class _OtpScreenState extends State<OtpScreen> {
 
         if (state is PhoneOTPVerified) {
           Navigator.pop(context);
-          
 
           AwesomeDialog(
             context: context,
@@ -178,15 +178,14 @@ class _OtpScreenState extends State<OtpScreen> {
             title: '',
             desc: 'تم التسجيل بنجاح',
             btnOkOnPress: () {
-              Navigator.of(context)
-              .pushNamedAndRemoveUntil(navBar, (route) => false);
+             
             },
-          ).show();
-          
+          ).show().then((value) =>  Navigator.of(context)
+                  .pushNamedAndRemoveUntil(navBar, (route) => false));
         }
         if (state is ErrorOccurred) {
           Navigator.of(context).pushReplacementNamed("otpScreen");
-          
+
           String errorMsg = (state).errorMsg;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

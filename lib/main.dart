@@ -2,12 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:gradution_project2/app_routes.dart';
 import 'package:gradution_project2/bussines_logic/cubit/phone_auth_cubit.dart';
 import 'package:gradution_project2/constant/strings.dart';
 import 'package:gradution_project2/firebase_options.dart';
 import 'package:gradution_project2/presentation/screens/pages/chose_login.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 late String intialRoute;
 void main(List<String> args) async {
@@ -39,12 +39,17 @@ class GradutionProject extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<PhoneAuthCubit>.value(
       value: phoneAuthCubit,
-      child: MaterialApp(
-        theme: ThemeData(fontFamily: "LamaSans",),
-        debugShowCheckedModeBanner: false,
-        home: const ChoseLogin(),
-        onGenerateRoute: appRouter.generateRoute,
-        initialRoute: intialRoute,
+      child: MediaQuery(
+        data: MediaQueryData.fromView(WidgetsBinding.instance.window),
+        child: MaterialApp(
+          theme: ThemeData(
+            fontFamily: "LamaSans",
+          ),
+          debugShowCheckedModeBanner: false,
+          home: const ChoseLogin(),
+          onGenerateRoute: appRouter.generateRoute,
+          initialRoute: intialRoute,
+        ),
       ),
     );
   }

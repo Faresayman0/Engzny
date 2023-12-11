@@ -41,10 +41,9 @@ class _ChoseLoginState extends State<ChoseLogin> {
       animType: AnimType.rightSlide,
       title: '',
       desc: "تم تسجيل الدخول بنجاح",
-      btnOkOnPress: () {
-        Navigator.of(context).pushReplacementNamed(navBar);
-      },
-    ).show();
+      btnOkOnPress: () {},
+    ).show().then((value) => Navigator.of(context).pushReplacementNamed(navBar) );
+   
   }
 
   @override
