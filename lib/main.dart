@@ -7,49 +7,68 @@ import 'package:gradution_project2/bussines_logic/cubit/phone_auth_cubit.dart';
 import 'package:gradution_project2/constant/strings.dart';
 import 'package:gradution_project2/firebase_options.dart';
 import 'package:gradution_project2/presentation/screens/pages/chose_login.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:gradution_project2/presentation/screens/pages/splash_screen.dart';
+import 'package:gradution_project2/presentation/widgets/navbar.dart';
 
-late String intialRoute;
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  String initialRoute = '/';
+
   FirebaseAuth.instance.authStateChanges().listen((user) {
     if (user == null) {
-      intialRoute = animitedSplashScreen;
+      initialRoute = animitedSplashScreen;
     } else {
-      intialRoute = navBar;
+      initialRoute = navBar;
     }
-  });
 
-  runApp(GradutionProject(
-    appRouter: AppRouter(),
-    phoneAuthCubit: PhoneAuthCubit(),
-  ));
+    runApp(GraduationProject(
+      appRouter: AppRouter(),
+      phoneAuthCubit: PhoneAuthCubit(),
+      initialRoute: initialRoute,
+    ));
+  });
 }
 
-class GradutionProject extends StatelessWidget {
+class GraduationProject extends StatefulWidget {
   final AppRouter appRouter;
   final PhoneAuthCubit phoneAuthCubit;
+  final String initialRoute;
+  const GraduationProject({
+    super.key,
+    required this.appRouter,
+    required this.phoneAuthCubit,
+    required this.initialRoute,
+  });
 
-  const GradutionProject(
-      {super.key, required this.appRouter, required this.phoneAuthCubit});
+  @override
+  State<GraduationProject> createState() => _GraduationProjectState();
+}
+
+class _GraduationProjectState extends State<GraduationProject> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<PhoneAuthCubit>.value(
-      value: phoneAuthCubit,
-      child: MediaQuery(
-        data: MediaQueryData.fromView(WidgetsBinding.instance.window),
-        child: MaterialApp(
-          theme: ThemeData(
-            fontFamily: "LamaSans",
-          ),
-          debugShowCheckedModeBanner: false,
-          home: const ChoseLogin(),
-          onGenerateRoute: appRouter.generateRoute,
-          initialRoute: intialRoute,
+      value: widget.phoneAuthCubit,
+      child: MaterialApp(
+        theme: ThemeData(
+          fontFamily: "LamaSans",
         ),
+        debugShowCheckedModeBanner: false,
+        home:  BlocBuilder<PhoneAuthCubit, PhoneAuthState>(
+          builder: (context, state) {
+            if (state is PhoneAuthState) {
+              return const Navbar();
+            } else {
+              return const ChoseLogin();
+            }
+          },
+        ),
+        onGenerateRoute: widget.appRouter.generateRoute,
+        initialRoute: widget.initialRoute,
       ),
     );
   }

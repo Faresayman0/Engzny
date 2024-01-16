@@ -1,6 +1,9 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:gradution_project2/constant/strings.dart';
 import 'package:gradution_project2/presentation/widgets/constant_widget.dart';
@@ -9,7 +12,7 @@ class ChoseLogin extends StatefulWidget {
   const ChoseLogin({super.key});
 
   @override
-  State<ChoseLogin> createState() => _ChoseLoginState();
+  _ChoseLoginState createState() => _ChoseLoginState();
 }
 
 class _ChoseLoginState extends State<ChoseLogin> {
@@ -18,6 +21,7 @@ class _ChoseLoginState extends State<ChoseLogin> {
   Future signInWithGoogle(BuildContext context) async {
     isLoading = true;
     setState(() {});
+
     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
     if (googleUser == null) {
       isLoading = false;
@@ -34,7 +38,7 @@ class _ChoseLoginState extends State<ChoseLogin> {
     );
 
     await FirebaseAuth.instance.signInWithCredential(credential);
-    // ignore: use_build_context_synchronously
+
     AwesomeDialog(
       context: context,
       dialogType: DialogType.success,
@@ -42,18 +46,23 @@ class _ChoseLoginState extends State<ChoseLogin> {
       title: '',
       desc: "تم تسجيل الدخول بنجاح",
       btnOkOnPress: () {},
-    ).show().then((value) => Navigator.of(context).pushReplacementNamed(navBar) );
-   
+    ).show().then(
+          (value) => Navigator.of(context)
+              .pushNamedAndRemoveUntil(navBar, (route) => false),
+        );
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
+    return WillPopScope(
+      onWillPop: () async {
+        await _handleBackButton(context);
+        return false;
+      },
+      child: SafeArea(
+        child: Scaffold(
           body: isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(),
-                )
+              ? const Center(child: CircularProgressIndicator())
               : Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -70,23 +79,29 @@ class _ChoseLoginState extends State<ChoseLogin> {
                         width: double.infinity,
                         height: 50,
                         child: TextButton(
-                            style: TextButton.styleFrom(
-                                backgroundColor: Colors.blue),
-                            onPressed: () async {
-                              setState(() {
-                                isLoading = true;
-                              });
-                              await Navigator.pushNamed(context, loginScreen);
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                          ),
+                          onPressed: () async {
+                            setState(() {
+                              isLoading = true;
+                            });
+                            await Navigator.pushNamed(context, loginScreen);
 
-                              setState(() {
-                                isLoading = false;
-                              });
-                            },
-                            child: const Text(
+                            setState(() {
+                              isLoading = false;
+                            });
+                          },
+                          child: const Center(
+                            child: Text(
                               "تسجيل الدخول باستخدام رقم الهاتف",
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 20),
-                            )),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                       const SizedBox(
                         height: 20,
@@ -108,26 +123,29 @@ class _ChoseLoginState extends State<ChoseLogin> {
                               width: double.infinity,
                               height: 50,
                               child: TextButton(
-                                  style: TextButton.styleFrom(
-                                    backgroundColor: Colors.red,
-                                  ),
-                                  onPressed: () {
-                                    signInWithGoogle(context);
-                                  },
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Text(
-                                        "تسجل الدخول باستخدام جوجل  ",
-                                        style: TextStyle(
-                                            color: Colors.white, fontSize: 20),
+                                style: TextButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                ),
+                                onPressed: () {
+                                  signInWithGoogle(context);
+                                },
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Text(
+                                      "تسجيل الدخول باستخدام جوجل  ",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
                                       ),
-                                      Image.asset(
-                                        "asset/images/search.png",
-                                        height: 20,
-                                      )
-                                    ],
-                                  )),
+                                    ),
+                                    Image.asset(
+                                      "asset/images/search.png",
+                                      height: 20,
+                                    )
+                                  ],
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -142,7 +160,22 @@ class _ChoseLoginState extends State<ChoseLogin> {
                       ),
                     ],
                   ),
-                )),
+                ),
+        ),
+      ),
     );
+  }
+
+  Future<bool> _handleBackButton(BuildContext context) async {
+    if (isLoading) {
+      return false;
+    } else {
+      await _logOutOrExitApp(context);
+      return true;
+    }
+  }
+
+  Future<void> _logOutOrExitApp(BuildContext context) async {
+    SystemNavigator.pop();
   }
 }

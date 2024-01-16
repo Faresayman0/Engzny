@@ -14,50 +14,51 @@ class Navbar extends StatefulWidget {
 
 class _NavbarState extends State<Navbar> {
   int currentIndex = 0;
-  List<Widget> screens = [
-    const HomePage(),
-    const RatePage(),
-    const ReportPage(),
-    ProfilePage(),
-  ];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      bottomNavigationBar: CurvedNavigationBar(
-        animationDuration: const Duration(milliseconds: 600),
-        backgroundColor: Colors.white,
-        buttonBackgroundColor: Colors.white,
-        color: const Color(0xff2074EF),
-        height: 50,
-        index: currentIndex,
-        items: const [
-          Icon(Icons.home_outlined, size: 30),
-          Icon(Icons.star_border, size: 30,),
-          Icon(Icons.announcement_outlined, size: 30),
-          Icon(Icons.person_2_outlined, size: 30),
-        ],
-        onTap: (index) {
+    List<Widget> screens = [
+       HomePage(),
+      const RatePage(),
+       const ReportPage(),
+      const ProfilePage(),
+    ];
+
+    return WillPopScope(
+      onWillPop: () async {
+        if (currentIndex != 0) {
           setState(() {
-            currentIndex = index;
+            currentIndex = 0;
           });
-        },
+          return false;
+        } else {
+          return true;
+        }
+      },
+      
+      child: Scaffold(
+        bottomNavigationBar: CurvedNavigationBar(
+          animationDuration: const Duration(milliseconds: 600),
+          backgroundColor: Colors.white,
+          buttonBackgroundColor: Colors.white,
+          color: const Color(0xff2074EF),
+          height: 50,
+          index: currentIndex,
+          items: const [
+            Icon(Icons.home_outlined, size: 30),
+            Icon(Icons.star_border, size: 30),
+            Icon(Icons.announcement_outlined, size: 30),
+            Icon(Icons.person_2_outlined, size: 30),
+          ],
+          onTap: (index) {
+            setState(() {
+              currentIndex = index;
+            });
+          },
+        ),
+        body: screens[currentIndex],
       ),
-      body: screens[currentIndex],
-    );
-  }
-}
-
-// Usage
-class YourApp extends StatelessWidget {
-  const YourApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Navbar(),
-      ),
+      
     );
   }
 }

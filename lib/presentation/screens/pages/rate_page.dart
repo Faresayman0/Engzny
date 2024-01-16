@@ -7,50 +7,19 @@ class RatePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return const SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
-        child: Column(
-          children: [
-            const SizedBox(
-              height: 200,
-              child: ConstantWidget(),
-            ),
-            const SizedBox(
-              height: 4,
-            ),
-            TextField(
-              keyboardType: TextInputType.phone,
-              decoration: InputDecoration(
-                labelText: 'رقم السيارة',
-                hintText: 'ادخل رقم السيارة',
-                prefixIcon: const Icon(Icons.directions_car),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-            RatingWidget(),
-            const SizedBox(
-              height: 12,
-            ),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child:   SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  
-                  onPressed: () {},
-                  child: const Text(
-                    'اضف تقييمك',
-                    style: TextStyle(fontSize: 18,),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+        padding: EdgeInsets.fromLTRB(16, 24, 16, 0),
+        child: Column(children: [
+          SizedBox(
+            height: 200,
+            child: ConstantWidget(),
+          ),
+          SizedBox(
+            height: 4,
+          ),
+          RatingWidget()
+        ]),
       ),
     );
   }

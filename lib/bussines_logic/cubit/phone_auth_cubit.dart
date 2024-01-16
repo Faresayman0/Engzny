@@ -22,28 +22,24 @@ class PhoneAuthCubit extends Cubit<PhoneAuthState> {
   }
 
   void verificationCompleted(PhoneAuthCredential credential) async {
-    print('verificationCompleted');
     await signIn(credential);
   }
 
   void verificationFailed(FirebaseAuthException error) {
-    print('verificationFailed : ${error.toString()}');
     emit(ErrorOccurred(errorMsg: error.toString()));
   }
 
   void codeSent(String verificationId, int? resendToken) {
-    print('codeSent');
     this.verificationId = verificationId;
     emit(PhoneNumberSubmited());
   }
 
   void codeAutoRetrievalTimeout(String verificationId) {
-    print('codeAutoRetrievalTimeout');
   }
 
   Future<void> submitOTP(String otpCode) async {
     PhoneAuthCredential credential = PhoneAuthProvider.credential(
-        verificationId: this.verificationId, smsCode: otpCode);
+        verificationId: verificationId, smsCode: otpCode);
 
     await signIn(credential);
   }

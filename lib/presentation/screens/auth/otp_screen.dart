@@ -11,7 +11,7 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 
 class OtpScreen extends StatefulWidget {
   final phoneNumber;
-  const OtpScreen({Key? key, required this.phoneNumber}) : super(key: key);
+  const OtpScreen({super.key, required this.phoneNumber});
   @override
   State<OtpScreen> createState() => _OtpScreenState();
 }

@@ -45,17 +45,17 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyBrfpgDC-Z5k1C_kf6GJquPn92eR88Ge2A',
-    appId: '1:977825625575:web:d9e3bfb5e09f8ef230f942',
+    appId: '1:977825625575:web:e297f3fcf09e1b9830f942',
     messagingSenderId: '977825625575',
     projectId: 'gradution-project2',
     authDomain: 'gradution-project2.firebaseapp.com',
     storageBucket: 'gradution-project2.appspot.com',
-    measurementId: 'G-RE7ZZTXNPN',
+    measurementId: 'G-LKYWDBGQW8',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBFdhcZEf_xeurVim67L_PNXZzO1IJPRZg',
-    appId: '1:977825625575:android:87409e0ff5f1cce130f942',
+    appId: '1:977825625575:android:0fe8029eef36f20f30f942',
     messagingSenderId: '977825625575',
     projectId: 'gradution-project2',
     storageBucket: 'gradution-project2.appspot.com',
@@ -63,19 +63,23 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDbVDNgdLpgOgsK2TM114_nsHsBI-bc948',
-    appId: '1:977825625575:ios:e0216a538431189e30f942',
+    appId: '1:977825625575:ios:1e0e65676ca2c90430f942',
     messagingSenderId: '977825625575',
     projectId: 'gradution-project2',
     storageBucket: 'gradution-project2.appspot.com',
+    androidClientId: '977825625575-2lq98lc2115n8jadof4689l7424d5uhp.apps.googleusercontent.com',
+    iosClientId: '977825625575-86tsne6g1gaql1fhnbfiet5n9r3hf481.apps.googleusercontent.com',
     iosBundleId: 'com.example.gradutionProject2',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyDbVDNgdLpgOgsK2TM114_nsHsBI-bc948',
-    appId: '1:977825625575:ios:2d77484a4ca82cdd30f942',
+    appId: '1:977825625575:ios:34417636a184361f30f942',
     messagingSenderId: '977825625575',
     projectId: 'gradution-project2',
     storageBucket: 'gradution-project2.appspot.com',
+    androidClientId: '977825625575-2lq98lc2115n8jadof4689l7424d5uhp.apps.googleusercontent.com',
+    iosClientId: '977825625575-pkq08nbvq6ltkr5qar47tso3l8ukln2j.apps.googleusercontent.com',
     iosBundleId: 'com.example.gradutionProject2.RunnerTests',
   );
 }
