@@ -62,7 +62,10 @@ class _ChoseLoginState extends State<ChoseLogin> {
       child: SafeArea(
         child: Scaffold(
           body: isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(
+                  child: CircularProgressIndicator(
+                  color: Colors.blue,
+                ))
               : Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -78,7 +81,7 @@ class _ChoseLoginState extends State<ChoseLogin> {
                       SizedBox(
                         width: double.infinity,
                         height: 50,
-                        child: TextButton(
+                        child: TextButton.icon(
                           style: TextButton.styleFrom(
                             backgroundColor: Colors.blue,
                           ),
@@ -92,15 +95,11 @@ class _ChoseLoginState extends State<ChoseLogin> {
                               isLoading = false;
                             });
                           },
-                          child: const Center(
-                            child: Text(
-                              "تسجيل الدخول باستخدام رقم الهاتف",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                              ),
-                            ),
-                          ),
+                          icon: const Icon(Icons.phone, color: Colors.white),
+                          label: const Text("تسجيل الدخول باستخدام رقم الهاتف",
+                              textAlign: TextAlign.center,
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 15)),
                         ),
                       ),
                       const SizedBox(
@@ -108,9 +107,17 @@ class _ChoseLoginState extends State<ChoseLogin> {
                       ),
                       const Row(
                         children: [
-                          Expanded(child: Divider()),
+                          Expanded(
+                              child: Divider(
+                            endIndent: 14,
+                            color: Colors.blue,
+                          )),
                           Text("or"),
-                          Expanded(child: Divider()),
+                          Expanded(
+                              child: Divider(
+                            indent: 14,
+                            color: Colors.blue,
+                          )),
                         ],
                       ),
                       const SizedBox(
@@ -132,17 +139,15 @@ class _ChoseLoginState extends State<ChoseLogin> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Text(
-                                      "تسجيل الدخول باستخدام جوجل  ",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 20,
-                                      ),
-                                    ),
                                     Image.asset(
                                       "asset/images/search.png",
                                       height: 20,
-                                    )
+                                    ),
+                                    const Text(
+                                      "   تسجيل الدخول باستخدام جوجل  ",
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 16),
+                                    ),
                                   ],
                                 ),
                               ),

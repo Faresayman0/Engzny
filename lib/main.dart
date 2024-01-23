@@ -56,15 +56,12 @@ class _GraduationProjectState extends State<GraduationProject> {
       child: MaterialApp(
         theme: ThemeData(
           fontFamily: "LamaSans",
+          primaryColor: Colors.blue,
         ),
         debugShowCheckedModeBanner: false,
-        home:  BlocBuilder<PhoneAuthCubit, PhoneAuthState>(
+        home: BlocBuilder<PhoneAuthCubit, PhoneAuthState>(
           builder: (context, state) {
-            if (state is PhoneAuthState) {
-              return const Navbar();
-            } else {
-              return const ChoseLogin();
-            }
+            return const Navbar();
           },
         ),
         onGenerateRoute: widget.appRouter.generateRoute,

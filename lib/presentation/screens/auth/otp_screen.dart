@@ -66,7 +66,7 @@ class _OtpScreenState extends State<OtpScreen> {
       elevation: 0,
       content: Center(
         child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
         ),
       ),
     );
@@ -177,11 +177,9 @@ class _OtpScreenState extends State<OtpScreen> {
             animType: AnimType.rightSlide,
             title: '',
             desc: 'تم التسجيل بنجاح',
-            btnOkOnPress: () {
-             
-            },
-          ).show().then((value) =>  Navigator.of(context)
-                  .pushNamedAndRemoveUntil(navBar, (route) => false));
+            btnOkOnPress: () {},
+          ).show().then((value) => Navigator.of(context)
+              .pushNamedAndRemoveUntil(navBar, (route) => false));
         }
         if (state is ErrorOccurred) {
           Navigator.of(context).pushReplacementNamed("otpScreen");
@@ -256,7 +254,7 @@ class _OtpScreenState extends State<OtpScreen> {
                         },
                         child: const Text(
                           "تعديل رقم الهاتف",
-                          style: TextStyle(),
+                          style: TextStyle(color: Colors.blue),
                         ),
                       ),
                     const SizedBox(

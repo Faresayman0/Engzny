@@ -38,64 +38,67 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => PhoneAuthCubit(),
-      child: Scaffold(
-        body: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Center(
-            child: Column(
-              children: <Widget>[
-                const ConstantWidget(),
-                const SizedBox(
-                  height: 60,
-                ),
-                if (userEmail != null)
-                  Text(
-                    'المستخدم: $userEmail',
-                    style: const TextStyle(fontSize: 18),
+      child: SafeArea(
+        child: Scaffold(
+          body: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Center(
+              child: Column(
+                children: <Widget>[
+                  const ConstantWidget(),
+                  const SizedBox(
+                    height: 60,
                   ),
-                if (userPhoneNumber != null)
-                  Text(
-                    'رقم الهاتف: $userPhoneNumber',
-                    style: const TextStyle(fontSize: 24),
+                  if (userEmail != null)
+                    Text(
+                      'المستخدم: $userEmail',
+                      style: const TextStyle(fontSize: 18),
+                    ),
+                  if (userPhoneNumber != null)
+                    Text(
+                      'رقم الهاتف: $userPhoneNumber',
+                      style: const TextStyle(fontSize: 24),
+                    ),
+                  const SizedBox(
+                    height: 10,
                   ),
-                const SizedBox(
-                  height: 10,
-                ),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 40),
-                      backgroundColor: Colors.blue),
-                  onPressed: () async {
-                    PhoneAuthCubit phoneAuthCubit =
-                        BlocProvider.of<PhoneAuthCubit>(context);
-                    GoogleSignIn googleSignIn = GoogleSignIn();
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 40),
+                        backgroundColor: Colors.blue),
+                    onPressed: () async {
+                      PhoneAuthCubit phoneAuthCubit =
+                          BlocProvider.of<PhoneAuthCubit>(context);
+                      GoogleSignIn googleSignIn = GoogleSignIn();
 
-                    try {
-                      await googleSignIn.disconnect();
-                    } catch (error) {
-                      print("Error disconnecting Google Sign In: $error");
-                    }
+                      try {
+                        await googleSignIn.disconnect();
+                      } catch (error) {
+                        print("Error disconnecting Google Sign In: $error");
+                      }
 
-                    try {
-                      await FirebaseAuth.instance.signOut();
-                    } catch (error) {
-                      print("Error signing out of Firebase: $error");
-                    }
+                      try {
+                        await FirebaseAuth.instance.signOut();
+                      } catch (error) {
+                        print("Error signing out of Firebase: $error");
+                      }
 
-                    await phoneAuthCubit.logOut();
+                      await phoneAuthCubit.logOut();
 
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      choseLogin,
-                      (route) => false,
-                    );
-                  },
-                  icon: const Icon(Icons.logout_outlined, color: Colors.white),
-                  label: const Text(
-                    "تسجيل الخروج",
-                    style: TextStyle(color: Colors.white),
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        choseLogin,
+                        (route) => false,
+                      );
+                    },
+                    icon:
+                        const Icon(Icons.logout_outlined, color: Colors.white),
+                    label: const Text(
+                      "تسجيل الخروج",
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

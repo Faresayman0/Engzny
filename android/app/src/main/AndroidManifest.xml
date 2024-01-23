@@ -2,6 +2,7 @@
 package="new.package.EngeznyUser"
 >
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+<uses-permission android:name="android.permission.RECEIVE_SMS" />
 
     <application
         android:label="Engezny"

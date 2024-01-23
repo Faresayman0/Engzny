@@ -23,16 +23,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildFormFeild() {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Expanded(
           child: Container(
             margin: const EdgeInsets.only(bottom: 20),
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+            padding: const EdgeInsets.symmetric(
+              vertical: 22,
+            ),
             decoration: BoxDecoration(
-                border: Border.all(
-                  color: MyColor.lightGrey,
-                ),
-                borderRadius: BorderRadius.circular(10)),
+              border: Border.all(color: Colors.blue),
+              borderRadius: BorderRadius.circular(10),
+            ),
             child: Text(
               "${generateCountryFlag()} +20",
               style: const TextStyle(fontSize: 18, letterSpacing: 1),
@@ -49,12 +51,13 @@ class _LoginScreenState extends State<LoginScreen> {
             child: TextFormField(
               maxLength: 11,
               controller: phoneController,
-              cursorColor: Colors.black,
+              cursorColor: Colors.blue,
               style: const TextStyle(fontSize: 18, letterSpacing: 2),
               autofocus: true,
               keyboardType: TextInputType.phone,
               decoration: const InputDecoration(
                   labelText: " رقم الهاتف",
+                  labelStyle: TextStyle(color: Colors.blue),
                   focusColor: Colors.blue,
                   focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.blue, width: 2)),
@@ -64,9 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 if (value!.isEmpty) {
                   return "ادخل رقم هاتفك";
                 } else if (value.length < 11) {
-                  
                   return "اكمل باقي الرقم";
-                  
                 }
 
                 return null;
@@ -126,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
       elevation: 0,
       content: Center(
         child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
         ),
       ),
     );

@@ -5,7 +5,7 @@ class MyDropdownButton extends StatefulWidget {
   void Function(String?)? onChanged;
 
   MyDropdownButton({
-    super.key, 
+    super.key,
     required this.stationName,
     required this.onChanged,
   });
@@ -26,6 +26,14 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
         isExpanded: true,
         value: selectedCity,
         onChanged: widget.onChanged,
+        decoration: const InputDecoration(
+          focusedBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.blue),
+          ),
+          enabledBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.blue),
+          ),
+        ),
         items: widget.stationName.map<DropdownMenuItem<String>>((value) {
           return DropdownMenuItem<String>(
             value: value,

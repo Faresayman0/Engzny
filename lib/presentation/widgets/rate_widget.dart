@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class RatingWidget extends StatefulWidget {
-  const RatingWidget({Key? key}) : super(key: key);
+  const RatingWidget({super.key});
 
   @override
   _RatingWidgetState createState() => _RatingWidgetState();
@@ -42,7 +42,7 @@ class _RatingWidgetState extends State<RatingWidget> {
     _thirdFocusNode = FocusNode();
     _digitFocusNode = FocusNode();
 
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_firstFocusNode);
     });
   }
@@ -146,10 +146,15 @@ class _RatingWidgetState extends State<RatingWidget> {
     FocusNode? nextFocusNode,
   }) {
     return TextField(
+      cursorColor: Colors.blue,
       controller: controller,
       decoration: InputDecoration(
         labelText: labelText,
+        labelStyle: const TextStyle(color: Colors.blue, fontSize: 12),
         border: const OutlineInputBorder(),
+        focusedBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.blue),
+        ),
       ),
       textAlign: TextAlign.center,
       keyboardType: isDigit ? TextInputType.number : TextInputType.text,
@@ -186,16 +191,26 @@ class _RatingWidgetState extends State<RatingWidget> {
 
   ElevatedButton buildElevatedButton() {
     return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blue,
+        minimumSize: const Size(double.infinity, 40),
+      ),
       onPressed: () async {
         if ((_carNumberLetters.length == 3 || _carNumberLetters.length == 2) &&
             (_carNumberDigits.length == 3 || _carNumberDigits.length == 2)) {
           String carNumber = '$_carNumberLetters$_carNumberDigits';
           await checkCarExistenceAndAddRating(carNumber);
+          _firstController.selection = const TextSelection.collapsed(offset: 0);
+
+          _firstFocusNode.requestFocus();
         } else {
           showValidationDialog();
         }
       },
-      child: const Text('ارسل التقييم '),
+      child: const Text(
+        'ارسل التقييم ',
+        style: TextStyle(color: Colors.white),
+      ),
     );
   }
 
@@ -214,7 +229,7 @@ class _RatingWidgetState extends State<RatingWidget> {
 
       if (querySnapshot.docs.isNotEmpty) {
         var carDocument = querySnapshot.docs.first;
-        if (carDocument.data()!.containsKey('rating')) {
+        if (carDocument.data().containsKey('rating')) {
           if (carDocument['rating'] != null) {
             await updateExistingRating(carDocument.id);
           } else {

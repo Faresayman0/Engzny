@@ -76,7 +76,13 @@ class _HomePageState extends State<HomePage> {
 
       setState(() {});
     } catch (e) {
-      print("Error fetching data for $cityId: $e");
+      AwesomeDialog(
+        context: context,
+        animType: AnimType.rightSlide,
+        title: '',
+        desc: "هناك مشكله",
+        btnOkOnPress: () {},
+      ).show();
     }
   }
 
@@ -141,17 +147,14 @@ class _HomePageState extends State<HomePage> {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        // إذا كانت خدمة الموقع معطلة، يظهر دايلوج لتفعيلها
         await _showEnableLocationServiceDialog();
         return;
       }
 
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
-        // إذا كانت الصلاحيات مرفوضة، يطلب من المستخدم تفعيلها
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          // إذا كان المستخدم قد رفض تفعيل الصلاحيات، يظهر دايلوج لتفعيلها
           await _showEnableLocationPermissionDialog();
           return;
         }
@@ -164,8 +167,7 @@ class _HomePageState extends State<HomePage> {
         );
 
         if (mounted) {
-          print(
-              "Current Location: ${position.latitude}, ${position.longitude}");
+         
 
           if (position.latitude != 0.0 && position.longitude != 0.0) {
             setState(() {
@@ -181,12 +183,10 @@ class _HomePageState extends State<HomePage> {
           } else {}
         }
       } else {
-        // إذا كانت الصلاحيات لم تتم تفعيلها، يظهر دايلوج لتفعيلها
         await _showEnableLocationPermissionDialog();
       }
     } catch (e) {
       print("Error getting current location: $e");
-      // Handle the error as needed
     }
   }
 
@@ -288,7 +288,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<double> getDistance(LatLng origin, LatLng destination) async {
-    // Use the Google Directions API to get the distance
     const apiKey = 'AIzaSyDh3__9kh_BOO31Jph0XNt2VhSYVsMYobo';
     final url =
         'https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&key=$apiKey';
@@ -303,7 +302,6 @@ class _HomePageState extends State<HomePage> {
           final legs = routes[0]['legs'] as List<dynamic>;
           if (legs.isNotEmpty) {
             final distance = legs[0]['distance']['value'] as int;
-            // Convert meters to kilometers
             return distance / 1000.0;
           }
         }
@@ -370,8 +368,9 @@ class _HomePageState extends State<HomePage> {
         label: const Text("اقرب موقف لك"),
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           child: StreamBuilder<double>(
             stream: _fadeController.stream,
             builder: (context, snapshot) {
@@ -409,6 +408,9 @@ class _HomePageState extends State<HomePage> {
                                 fontSize: 16,
                               ),
                             ),
+                            const SizedBox(
+                              height: 8,
+                            ),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.blue),
@@ -442,14 +444,14 @@ class _HomePageState extends State<HomePage> {
                                           Text(
                                             "${line['nameLine']}",
                                             style: const TextStyle(
-                                              fontSize: 20,
+                                              fontSize: 16,
                                             ),
                                           ),
                                           const Icon(Icons.arrow_back),
                                           Text(
                                             "$selectedCity",
                                             style:
-                                                const TextStyle(fontSize: 20),
+                                                const TextStyle(fontSize: 16),
                                           ),
                                         ],
                                       ),
@@ -459,7 +461,9 @@ class _HomePageState extends State<HomePage> {
                                         builder: (context, snapshot) {
                                           if (snapshot.connectionState ==
                                               ConnectionState.waiting) {
-                                            return const CircularProgressIndicator();
+                                            return const CircularProgressIndicator(
+                                              color: Colors.blue,
+                                            );
                                           } else if (snapshot.hasError) {
                                             return Text(
                                                 "Error: ${snapshot.error}");
@@ -489,14 +493,14 @@ class _HomePageState extends State<HomePage> {
                                                             .spaceAround,
                                                     children: [
                                                       Text(
-                                                        "عدد العربيات المتاحه :$numberOfAvailableCars",
+                                                        "عدد العربيات المتاحه: $numberOfAvailableCars",
                                                         style: const TextStyle(
-                                                            fontSize: 20),
+                                                            fontSize: 16),
                                                       ),
                                                       Text(
-                                                        "سعر الاجره:${line['priceLine']}",
+                                                        "سعر الاجره: ${line['priceLine']}ج",
                                                         style: const TextStyle(
-                                                          fontSize: 20,
+                                                          fontSize: 16,
                                                         ),
                                                       ),
                                                     ],
@@ -531,7 +535,9 @@ class _HomePageState extends State<HomePage> {
                                                                       .connectionState ==
                                                                   ConnectionState
                                                                       .waiting) {
-                                                                return const CircularProgressIndicator();
+                                                                return const CircularProgressIndicator(
+                                                                    color: Colors
+                                                                        .blue);
                                                               } else if (snapshot
                                                                   .hasError) {
                                                                 return Text(
@@ -587,6 +593,9 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ],
                       ),
+                  const SizedBox(
+                    height: 50,
+                  )
                 ],
               );
             },
