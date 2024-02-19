@@ -64,6 +64,7 @@ class _ChoseLoginState extends State<ChoseLogin> {
           body: isLoading
               ? const Center(
                   child: CircularProgressIndicator(
+                    
                   color: Colors.blue,
                 ))
               : Padding(

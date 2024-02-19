@@ -16,6 +16,9 @@ class _ReportPageState extends State<ReportPage> {
   String? userEmail;
   String? userPhoneNumber;
 
+  String? selectedStartingLocation;
+  String? selectedEndingLocation;
+
   final TextEditingController _firstController = TextEditingController();
   final TextEditingController _secondController = TextEditingController();
   final TextEditingController _thirdController = TextEditingController();
@@ -27,13 +30,18 @@ class _ReportPageState extends State<ReportPage> {
   final FocusNode _thirdFocusNode = FocusNode();
   final FocusNode _digitFocusNode = FocusNode();
 
+  List<String> parkingLocations = [];
+
   @override
   void initState() {
     super.initState();
     _user = FirebaseAuth.instance.currentUser!;
     fetchUserData();
+    fetchParkingLocations();
     Future.delayed(Duration.zero, () {
-      FocusScope.of(context).requestFocus(_firstFocusNode);
+      if (mounted) {
+        FocusScope.of(context).requestFocus(_firstFocusNode);
+      }
     });
   }
 
@@ -50,10 +58,29 @@ class _ReportPageState extends State<ReportPage> {
     User? user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
-      setState(() {
-        userEmail = user.email;
-        userPhoneNumber = user.phoneNumber;
-      });
+      if (mounted) {
+        setState(() {
+          userEmail = user.email;
+          userPhoneNumber = user.phoneNumber;
+        });
+      }
+    }
+  }
+
+  Future<void> fetchParkingLocations() async {
+    try {
+      final parkingQuerySnapshot =
+          await FirebaseFirestore.instance.collection('المواقف').get();
+
+      if (mounted && parkingQuerySnapshot.docs.isNotEmpty) {
+        setState(() {
+          parkingLocations = parkingQuerySnapshot.docs
+              .map((doc) => doc['name'] as String)
+              .toList();
+        });
+      }
+    } catch (e) {
+      print('Error fetching parking locations: $e');
     }
   }
 
@@ -69,8 +96,11 @@ class _ReportPageState extends State<ReportPage> {
         second.isEmpty ||
         third.isEmpty ||
         digit.isEmpty ||
-        complaint.isEmpty) {
-      _showAlertDialog('الرجاء ادخال جميع نمرة السيارة والشكوى');
+        complaint.isEmpty ||
+        selectedStartingLocation == null ||
+        selectedEndingLocation == null) {
+      _showAlertDialog(
+          'الرجاء ادخال جميع نمرة السيارة والشكوى واختيار المواقف');
       return;
     }
 
@@ -80,7 +110,7 @@ class _ReportPageState extends State<ReportPage> {
           .where('numberOfCar', isEqualTo: carNumber)
           .get();
 
-      if (carQuerySnapshot.docs.isEmpty) {
+      if (mounted && carQuerySnapshot.docs.isEmpty) {
         _showAlertDialog("نمرة السيارة غير صحيحه");
         return;
       }
@@ -94,15 +124,21 @@ class _ReportPageState extends State<ReportPage> {
         'timestamp': FieldValue.serverTimestamp(),
         'userId': _user.uid,
         'userName': userEmail ?? userPhoneNumber,
+        'startingLocation': selectedStartingLocation,
+        'endingLocation': selectedEndingLocation,
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم إرسال الشكوى بنجاح')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تم إرسال الشكوى بنجاح')),
+        );
 
-      _clearInputFields();
+        _clearInputFields();
+      }
     } catch (e) {
-      _showAlertDialog('حدث خطأ أثناء إرسال الشكوى، يرجى المحاولة مرة أخرى');
+      if (mounted) {
+        _showAlertDialog('حدث خطأ أثناء إرسال الشكوى، يرجى المحاولة مرة أخرى');
+      }
     }
   }
 
@@ -127,13 +163,17 @@ class _ReportPageState extends State<ReportPage> {
   }
 
   void _clearInputFields() {
-    setState(() {
-      _firstController.clear();
-      _secondController.clear();
-      _thirdController.clear();
-      _digitController.clear();
-      _complaintController.clear();
-    });
+    if (mounted) {
+      setState(() {
+        _firstController.clear();
+        _secondController.clear();
+        _thirdController.clear();
+        _digitController.clear();
+        _complaintController.clear();
+        selectedStartingLocation = null;
+        selectedEndingLocation = null;
+      });
+    }
   }
 
   DateTime? _getTimestamp(Map<String, dynamic> messageData) {
@@ -160,6 +200,10 @@ class _ReportPageState extends State<ReportPage> {
                   'رقم السيارة:', messageData['carNumber'].toString()),
               _buildMessageText(
                   'محتوى الشكوى:', messageData['complaint'].toString()),
+              _buildMessageText(
+                  "ركبت من:", messageData['startingLocation'].toString()),
+              _buildMessageText(
+                  'رايح الي:', messageData['endingLocation'].toString()),
               _buildMessageText('الوقت:', formattedTime),
             ],
           ),
@@ -177,45 +221,68 @@ class _ReportPageState extends State<ReportPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: ListView(
+  Widget _buildCarNumberInput() {
+    return Column(
+      children: [
+        Row(
           children: [
-            const ConstantWidget(),
-            const SizedBox(
-              height: 10,
-            ),
-            _buildCarNumberInput(),
-            const SizedBox(height: 16),
-            _buildComplaintInput(),
-            const SizedBox(height: 16),
-            _buildSendComplaintButton(),
-            const SizedBox(height: 32),
-            _buildSentComplaints(),
+            _buildTextField('الارقام', _digitController, _digitFocusNode, 3,
+                TextInputType.number),
+            const SizedBox(width: 8),
+            _buildTextField('ثالث حرف', _thirdController, _thirdFocusNode, 1,
+                TextInputType.text),
+            const SizedBox(width: 8),
+            _buildTextField('ثاني حرف', _secondController, _secondFocusNode, 1,
+                TextInputType.text),
+            const SizedBox(width: 8),
+            _buildTextField('اول حرف', _firstController, _firstFocusNode, 1,
+                TextInputType.text),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildCarNumberInput() {
-    return Row(
-      children: [
-        _buildTextField('الارقام', _digitController, _digitFocusNode, 3,
-            TextInputType.number),
-        const SizedBox(width: 8),
-        _buildTextField('ثالث حرف', _thirdController, _thirdFocusNode, 1,
-            TextInputType.text),
-        const SizedBox(width: 8),
-        _buildTextField('ثاني حرف', _secondController, _secondFocusNode, 1,
-            TextInputType.text),
-        const SizedBox(width: 8),
-        _buildTextField('اول حرف', _firstController, _firstFocusNode, 1,
-            TextInputType.text),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            DropdownButton<String>(
+              iconSize: 40,
+              value: selectedEndingLocation,
+              hint: const Text(
+                "رايح فين",
+              ),
+              items: parkingLocations
+                  .map((location) => DropdownMenuItem(
+                        value: location,
+                        child: Text(location),
+                      ))
+                  .toList(),
+              onChanged: (value) {
+                if (mounted) {
+                  setState(() {
+                    selectedEndingLocation = value;
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+            DropdownButton<String>(
+              iconSize: 40,
+              value: selectedStartingLocation,
+              hint: const Text('ركبت منين'),
+              items: parkingLocations
+                  .map((location) => DropdownMenuItem(
+                        value: location,
+                        child: Text(location),
+                      ))
+                  .toList(),
+              onChanged: (value) {
+                if (mounted) {
+                  setState(() {
+                    selectedStartingLocation = value;
+                  });
+                }
+              },
+            ),
+          ],
+        )
       ],
     );
   }
@@ -230,7 +297,7 @@ class _ReportPageState extends State<ReportPage> {
         focusNode: focusNode,
         onChanged: (value) {
           if (value.length == maxLength) {
-            _moveToNextField(focusNode);
+            _moveToNextField(focusNode, maxLength);
           }
         },
         decoration: InputDecoration(
@@ -247,14 +314,25 @@ class _ReportPageState extends State<ReportPage> {
         keyboardType: keyboardType,
         maxLength: maxLength,
         onEditingComplete: () {
-          _moveToNextField(focusNode);
+          _moveToNextField(focusNode, maxLength);
         },
       ),
     );
   }
 
-  void _moveToNextField(FocusNode focusNode) {
-    FocusScope.of(context).requestFocus(focusNode);
+  void _moveToNextField(FocusNode focusNode, int maxLength) {
+    FocusNode? nextFocusNode;
+    if (focusNode == _firstFocusNode) {
+      nextFocusNode = _secondFocusNode;
+    } else if (focusNode == _secondFocusNode) {
+      nextFocusNode = _thirdFocusNode;
+    } else if (focusNode == _thirdFocusNode) {
+      nextFocusNode = _digitFocusNode;
+    }
+
+    if (nextFocusNode != null) {
+      FocusScope.of(context).requestFocus(nextFocusNode);
+    }
   }
 
   Widget _buildComplaintInput() {
@@ -341,6 +419,39 @@ class _ReportPageState extends State<ReportPage> {
           ),
         ),
       ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: ListView(
+          physics: const BouncingScrollPhysics(),
+          children: [
+            const ConstantWidget(),
+            const SizedBox(
+              height: 10,
+            ),
+            const SizedBox(height: 10),
+            const Center(
+              child: Text(
+                "ادخل نمرة السيارة",
+                style: TextStyle(fontSize: 25),
+              ),
+            ),
+            _buildCarNumberInput(),
+            const SizedBox(height: 16),
+            _buildComplaintInput(),
+            const SizedBox(height: 16),
+            _buildSendComplaintButton(),
+            const SizedBox(height: 32),
+            _buildSentComplaints(),
+          ],
+        ),
+      ),
     );
   }
 }

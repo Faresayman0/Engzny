@@ -31,6 +31,7 @@ class _HomePageState extends State<HomePage> {
   List<QueryDocumentSnapshot>? stationName;
   Map<String, List<QueryDocumentSnapshot>> lineAvailableMap = {};
   String? selectedCity;
+  bool isLoading = false;
 
   late GoogleMapController _mapController;
   late LatLng _currentLocation = const LatLng(0.0, 0.0);
@@ -41,7 +42,6 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     fetchData();
     _markers = <Marker>{};
-    getCurrentLocation();
   }
 
   @override
@@ -72,9 +72,10 @@ class _HomePageState extends State<HomePage> {
   Future<void> fetchDataForSelectedCity(String cityId) async {
     try {
       final lineData = await getLineAvailable(cityId);
-      lineAvailableMap[cityId] = lineData;
-
-      setState(() {});
+      if (mounted) {
+        lineAvailableMap[cityId] = lineData;
+        setState(() {});
+      }
     } catch (e) {
       AwesomeDialog(
         context: context,
@@ -167,8 +168,6 @@ class _HomePageState extends State<HomePage> {
         );
 
         if (mounted) {
-         
-
           if (position.latitude != 0.0 && position.longitude != 0.0) {
             setState(() {
               _currentLocation = LatLng(position.latitude, position.longitude);
@@ -195,22 +194,37 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("تفعيل خدمة الموقع"),
+          title: const Center(child: Text("تفعيل خدمة الموقع")),
           content: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                  "خدمة الموقع غير مفعلة. يرجى تفعيل خدمة الموقع للاستمرار."),
+              const Center(
+                child: Text(
+                  "يرجي تفعيل خدمة الموقع للحصول علي اقرب موقف بالنسبه لك",
+                  style: TextStyle(),
+                  textDirection: TextDirection.rtl,
+                ),
+              ),
               const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () async {
-                  if (await Geolocator.openLocationSettings()) {
-                    await getCurrentLocation();
-                  }
-                  Navigator.of(context).pop();
-                },
-                child: const Text("فتح إعدادات الموقع"),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 50)),
+                    onPressed: () async {
+                      if (await Geolocator.openLocationSettings()) {
+                        await getCurrentLocation();
+                      }
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text(
+                      "تفعيل الموقع",
+                      style: TextStyle(color: Colors.black),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -219,7 +233,7 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text("إلغاء"),
+              child: const Text("حسنا", style: TextStyle(color: Colors.black)),
             ),
           ],
         );
@@ -330,15 +344,11 @@ class _HomePageState extends State<HomePage> {
 
                 try {
                   await googleSignIn.disconnect();
-                } catch (error) {
-                  print("Error disconnecting Google Sign In: $error");
-                }
+                } catch (error) {}
 
                 try {
                   await FirebaseAuth.instance.signOut();
-                } catch (error) {
-                  print("Error signing out of Firebase: $error");
-                }
+                } catch (error) {}
 
                 await phoneAuthCubit.logOut();
 
@@ -355,14 +365,45 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: Colors.blue,
         onPressed: () async {
+          setState(() {
+            isLoading = true; // Set loading state to true
+          });
+
           await getCurrentLocation();
+
           if (_currentLocation.latitude != 0.0 &&
               _currentLocation.longitude != 0.0) {
-            _showNearestStationDialog();
-            print(
-                "============================= ${_currentLocation.latitude}, ${_currentLocation.longitude}");
-          } else {
-            print("Location not available");
+            // Show CircularProgressIndicator overlay
+            showDialog(
+              context: context,
+              barrierDismissible:
+                  false, // Prevent dismissing by tapping outside
+              builder: (BuildContext context) {
+                return Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      color: Colors.transparent,
+                    ),
+                    const CircularProgressIndicator(
+                      color: Colors.blue,
+                    ),
+                  ],
+                );
+              },
+            );
+
+            await getCurrentLocation();
+            if (_currentLocation.latitude != 0.0 &&
+                _currentLocation.longitude != 0.0) {
+              _showNearestStationDialog();
+            }
+
+            setState(() {
+              isLoading = false;
+            });
+
+            Navigator.of(context, rootNavigator: true).pop();
           }
         },
         label: const Text("اقرب موقف لك"),
@@ -652,7 +693,8 @@ class _HomePageState extends State<HomePage> {
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: const Text("حسنًا"),
+                  child: const Text("حسنًا",
+                      style: TextStyle(color: Colors.black)),
                 ),
                 TextButton(
                   onPressed: () {
@@ -660,42 +702,10 @@ class _HomePageState extends State<HomePage> {
                         nearestStation?['name'], nearestStation?['location']);
                     Navigator.of(context).pop();
                   },
-                  child: const Text("عرض الموقع على الخريطة"),
-                ),
-              ],
-            );
-          },
-        );
-      } else {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text("تفعيل الموقع"),
-              content: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                      "يرجى تفعيل خدمة الموقع للحصول على المزيد من المزايا."),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () async {
-                      if (await Geolocator.openLocationSettings()) {
-                        await getCurrentLocation();
-                      }
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text("فتح إعدادات الموقع"),
+                  child: const Text(
+                    "عرض الموقع على الخريطة",
+                    style: TextStyle(color: Colors.black),
                   ),
-                ],
-              ),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text("إلغاء"),
                 ),
               ],
             );

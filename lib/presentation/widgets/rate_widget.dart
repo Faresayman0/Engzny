@@ -80,6 +80,11 @@ class _RatingWidgetState extends State<RatingWidget> {
               });
             },
           ),
+          const SizedBox(height: 10),
+          const Text(
+            "ادخل نمرة السيارة",
+            style: TextStyle(fontSize: 25),
+          ),
           const SizedBox(height: 16.0),
           buildCarNumberFields(),
           const SizedBox(height: 16.0),
@@ -312,7 +317,10 @@ class _RatingWidgetState extends State<RatingWidget> {
                 Navigator.of(context).pop();
                 _resetFields();
               },
-              child: const Text('OK'),
+              child: const Text(
+                'حسنا',
+                style: TextStyle(color: Colors.black),
+              ),
             ),
           ],
         );
@@ -333,7 +341,10 @@ class _RatingWidgetState extends State<RatingWidget> {
                 Navigator.of(context).pop();
                 _resetFields();
               },
-              child: const Text('OK'),
+              child: const Text(
+                'حسنا',
+                style: TextStyle(color: Colors.black),
+              ),
             ),
           ],
         );
@@ -353,7 +364,10 @@ class _RatingWidgetState extends State<RatingWidget> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('OK'),
+              child: const Text(
+                'حسنا',
+                style: TextStyle(color: Colors.black),
+              ),
             ),
           ],
         );

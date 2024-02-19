@@ -6,8 +6,7 @@ import 'package:gradution_project2/app_routes.dart';
 import 'package:gradution_project2/bussines_logic/cubit/phone_auth_cubit.dart';
 import 'package:gradution_project2/constant/strings.dart';
 import 'package:gradution_project2/firebase_options.dart';
-import 'package:gradution_project2/presentation/screens/pages/chose_login.dart';
-import 'package:gradution_project2/presentation/screens/pages/splash_screen.dart';
+
 import 'package:gradution_project2/presentation/widgets/navbar.dart';
 
 void main(List<String> args) async {

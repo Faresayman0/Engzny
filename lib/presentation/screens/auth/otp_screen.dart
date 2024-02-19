@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:gradution_project2/bussines_logic/cubit/phone_auth_cubit.dart';
 import 'package:gradution_project2/constant/my_color.dart';
 import 'package:gradution_project2/constant/strings.dart';
@@ -187,7 +186,7 @@ class _OtpScreenState extends State<OtpScreen> {
           String errorMsg = (state).errorMsg;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(errorMsg),
+              content: Text("الكود الذي ادخلته غير صحيح"),
               backgroundColor: Colors.black,
               duration: const Duration(seconds: 3),
             ),

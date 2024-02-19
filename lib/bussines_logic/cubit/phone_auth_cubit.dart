@@ -18,6 +18,7 @@ class PhoneAuthCubit extends Cubit<PhoneAuthState> {
       verificationFailed: verificationFailed,
       codeSent: codeSent,
       codeAutoRetrievalTimeout: codeAutoRetrievalTimeout,
+      
     );
   }
 
