@@ -185,10 +185,10 @@ class _OtpScreenState extends State<OtpScreen> {
 
           String errorMsg = (state).errorMsg;
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text("الكود الذي ادخلته غير صحيح"),
               backgroundColor: Colors.black,
-              duration: const Duration(seconds: 3),
+              duration: Duration(seconds: 3),
             ),
           );
         }
