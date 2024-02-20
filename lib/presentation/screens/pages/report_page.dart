@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:gradution_project2/presentation/widgets/constant_widget.dart';
 import 'package:intl/intl.dart';
 
 class ReportPage extends StatefulWidget {
@@ -14,9 +15,9 @@ class _ReportPageState extends State<ReportPage> {
   late User _user;
   String? userEmail;
   String? userPhoneNumber;
-  List<QueryDocumentSnapshot>? stationName;
-  String? selectedCity;
-  Map<String, List<QueryDocumentSnapshot>> lineAvailableMap = {};
+
+  String? selectedStartingLocation;
+  String? selectedEndingLocation;
 
   final TextEditingController _firstController = TextEditingController();
   final TextEditingController _secondController = TextEditingController();
@@ -29,12 +30,14 @@ class _ReportPageState extends State<ReportPage> {
   final FocusNode _thirdFocusNode = FocusNode();
   final FocusNode _digitFocusNode = FocusNode();
 
+  List<String> parkingLocations = [];
+
   @override
   void initState() {
     super.initState();
     _user = FirebaseAuth.instance.currentUser!;
     fetchUserData();
-    getStationName(); // Call getStationName method to fetch station names
+    fetchParkingLocations();
     Future.delayed(Duration.zero, () {
       if (mounted) {
         FocusScope.of(context).requestFocus(_firstFocusNode);
@@ -64,45 +67,20 @@ class _ReportPageState extends State<ReportPage> {
     }
   }
 
-  Future<void> getStationName() async {
-    final querySnapshot =
-        await FirebaseFirestore.instance.collection("المواقف").get();
-    stationName = querySnapshot.docs;
-    // Fetch line data for each station
-    await fetchLineDataForEachStation();
-  }
-
-  Future<void> fetchLineDataForEachStation() async {
-    if (stationName != null) {
-      for (var station in stationName!) {
-        await fetchDataForSelectedCity(station.id);
-      }
-    }
-  }
-
-  Future<void> fetchDataForSelectedCity(String cityId) async {
+  Future<void> fetchParkingLocations() async {
     try {
-      final lineData = await getLineAvailable(cityId);
-      if (mounted) {
-        lineAvailableMap[cityId] = lineData;
-        setState(() {});
+      final parkingQuerySnapshot =
+          await FirebaseFirestore.instance.collection('المواقف').get();
+
+      if (mounted && parkingQuerySnapshot.docs.isNotEmpty) {
+        setState(() {
+          parkingLocations = parkingQuerySnapshot.docs
+              .map((doc) => doc['name'] as String)
+              .toList();
+        });
       }
     } catch (e) {
-      // Handle error
-    }
-  }
-
-  Future<List<QueryDocumentSnapshot>> getLineAvailable(String stationId) async {
-    try {
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection("المواقف")
-          .doc(stationId)
-          .collection("line")
-          .get();
-
-      return querySnapshot.docs;
-    } catch (e) {
-      return [];
+      print('Error fetching parking locations: $e');
     }
   }
 
@@ -118,8 +96,11 @@ class _ReportPageState extends State<ReportPage> {
         second.isEmpty ||
         third.isEmpty ||
         digit.isEmpty ||
-        complaint.isEmpty) {
-      _showAlertDialog('الرجاء ادخال جميع نمرة السيارة والشكوى');
+        complaint.isEmpty ||
+        selectedStartingLocation == null ||
+        selectedEndingLocation == null) {
+      _showAlertDialog(
+          'الرجاء ادخال جميع نمرة السيارة والشكوى واختيار المواقف');
       return;
     }
 
@@ -143,6 +124,8 @@ class _ReportPageState extends State<ReportPage> {
         'timestamp': FieldValue.serverTimestamp(),
         'userId': _user.uid,
         'userName': userEmail ?? userPhoneNumber,
+        'startingLocation': selectedStartingLocation,
+        'endingLocation': selectedEndingLocation,
       });
 
       if (mounted) {
@@ -187,6 +170,8 @@ class _ReportPageState extends State<ReportPage> {
         _thirdController.clear();
         _digitController.clear();
         _complaintController.clear();
+        selectedStartingLocation = null;
+        selectedEndingLocation = null;
       });
     }
   }
@@ -215,6 +200,10 @@ class _ReportPageState extends State<ReportPage> {
                   'رقم السيارة:', messageData['carNumber'].toString()),
               _buildMessageText(
                   'محتوى الشكوى:', messageData['complaint'].toString()),
+              _buildMessageText(
+                  "ركبت من:", messageData['startingLocation'].toString()),
+              _buildMessageText(
+                  'رايح الي:', messageData['endingLocation'].toString()),
               _buildMessageText('الوقت:', formattedTime),
             ],
           ),
@@ -250,38 +239,50 @@ class _ReportPageState extends State<ReportPage> {
                 TextInputType.text),
           ],
         ),
-        if (stationName != null && stationName!.isNotEmpty)
-          DropdownButton<String>(
-            value: selectedCity,
-            hint: const Text('اختر موقفاً'),
-            onChanged: (String? newValue) {
-              setState(() {
-                selectedCity = newValue;
-              });
-            },
-            items: stationName!.map<DropdownMenuItem<String>>((doc) {
-              return DropdownMenuItem<String>(
-                value: doc['name'] as String?,
-                child: Text(doc['name'] as String),
-              );
-            }).toList(),
-          ),
-       DropdownButton<String>(
-  value: selectedCity,
-  hint: const Text("اختر الخط"),
-  onChanged: (String? newValue) {
-    setState(() {
-      selectedCity = newValue;
-    });
-  },
-  items: lineAvailableMap[selectedCity]?.map<DropdownMenuItem<String>>((doc) {
-    return DropdownMenuItem<String>(
-      value: doc['line'] as String?,
-      child: Text(doc['nameLine'] as String),
-    );
-  }).toList() ?? [],
-),
-
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            DropdownButton<String>(
+              iconSize: 40,
+              value: selectedEndingLocation,
+              hint: const Text(
+                "رايح فين",
+              ),
+              items: parkingLocations
+                  .map((location) => DropdownMenuItem(
+                        value: location,
+                        child: Text(location),
+                      ))
+                  .toList(),
+              onChanged: (value) {
+                if (mounted) {
+                  setState(() {
+                    selectedEndingLocation = value;
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+            DropdownButton<String>(
+              iconSize: 40,
+              value: selectedStartingLocation,
+              hint: const Text('ركبت منين'),
+              items: parkingLocations
+                  .map((location) => DropdownMenuItem(
+                        value: location,
+                        child: Text(location),
+                      ))
+                  .toList(),
+              onChanged: (value) {
+                if (mounted) {
+                  setState(() {
+                    selectedStartingLocation = value;
+                  });
+                }
+              },
+            ),
+          ],
+        )
       ],
     );
   }
@@ -430,6 +431,10 @@ class _ReportPageState extends State<ReportPage> {
         child: ListView(
           physics: const BouncingScrollPhysics(),
           children: [
+            const ConstantWidget(),
+            const SizedBox(
+              height: 10,
+            ),
             const SizedBox(height: 10),
             const Center(
               child: Text(
