@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 
 class MyDropdownButton extends StatefulWidget {
   final List<String> stationName;
-  void Function(String?)? onChanged;
+  final void Function(String?)? onChanged;
+  final String hint;
+  final String itemPrefix;
 
-  MyDropdownButton({
+  const MyDropdownButton({
     super.key,
     required this.stationName,
     required this.onChanged,
+    required this.hint,
+    required this.itemPrefix,
   });
 
   @override
@@ -22,7 +26,7 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: DropdownButtonFormField<String>(
-        hint: const Text('إختر الموقف'),
+        hint: Text(widget.hint),
         isExpanded: true,
         value: selectedCity,
         onChanged: widget.onChanged,
@@ -38,7 +42,7 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
           return DropdownMenuItem<String>(
             value: value,
             child: Text(
-              'موقف $value',
+              '${widget.itemPrefix} $value',
               textDirection: TextDirection.rtl,
             ),
           );

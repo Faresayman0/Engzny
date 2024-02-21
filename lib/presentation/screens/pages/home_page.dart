@@ -426,6 +426,8 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 20),
                   if (stationName != null && stationName!.isNotEmpty)
                     MyDropdownButton(
+                      itemPrefix: 'موقف',
+                      hint: "اختر الموقف",
                       stationName: stationName!
                           .map<String>((doc) => doc['name'] as String)
                           .toList(),
@@ -433,7 +435,7 @@ class _HomePageState extends State<HomePage> {
                         setState(() {
                           selectedCity = newValue;
                         });
-                      },
+                      }, 
                     ),
                   const SizedBox(height: 20),
                   for (var station in stationName ?? [])

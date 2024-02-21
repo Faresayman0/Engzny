@@ -1,6 +1,9 @@
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:gradution_project2/presentation/screens/components/drop_down.dart';
+import 'package:gradution_project2/presentation/widgets/constant_widget.dart';
 import 'package:intl/intl.dart';
 
 class ReportPage extends StatefulWidget {
@@ -14,10 +17,6 @@ class _ReportPageState extends State<ReportPage> {
   late User _user;
   String? userEmail;
   String? userPhoneNumber;
-  List<QueryDocumentSnapshot>? stationName;
-  String? selectedStation;
-  String? selectedLine;
-  Map<String, List<QueryDocumentSnapshot>> lineAvailableMap = {};
 
   final TextEditingController _firstController = TextEditingController();
   final TextEditingController _secondController = TextEditingController();
@@ -30,12 +29,20 @@ class _ReportPageState extends State<ReportPage> {
   final FocusNode _thirdFocusNode = FocusNode();
   final FocusNode _digitFocusNode = FocusNode();
 
+  List<QueryDocumentSnapshot> stationName = [];
+  Map<String, List<QueryDocumentSnapshot>> lineAvailableMap = {};
+  String? selectedCity;
+  String? selectedLine;
+
   @override
   void initState() {
     super.initState();
     _user = FirebaseAuth.instance.currentUser!;
     fetchUserData();
-    getStationName(); // Call getStationName method to fetch station names
+    getStationName().then((_) {
+      fetchLineDataForEachStation();
+    });
+
     Future.delayed(Duration.zero, () {
       if (mounted) {
         FocusScope.of(context).requestFocus(_firstFocusNode);
@@ -65,33 +72,40 @@ class _ReportPageState extends State<ReportPage> {
     }
   }
 
+  Future<void> fetchData() async {
+    await getStationName();
+    await fetchLineDataForEachStation();
+  }
+
   Future<void> getStationName() async {
     final querySnapshot =
         await FirebaseFirestore.instance.collection("المواقف").get();
     stationName = querySnapshot.docs;
-    // Fetch line data for each station
-    await fetchLineDataForEachStation();
   }
 
   Future<void> fetchLineDataForEachStation() async {
-    if (stationName != null) {
-      for (var station in stationName!) {
-        await fetchDataForSelectedStation(station.id);
+    if (stationName.isNotEmpty) {
+      for (var station in stationName) {
+        await fetchDataForSelectedCity(station.id);
       }
     }
   }
 
-  Future<void> fetchDataForSelectedStation(String stationId) async {
+  Future<void> fetchDataForSelectedCity(String cityId) async {
     try {
-      final lineData = await getLineAvailable(stationId);
-      print('Line Data for $stationId: $lineData');
+      final lineData = await getLineAvailable(cityId);
       if (mounted) {
-        lineAvailableMap[stationId] = lineData;
+        lineAvailableMap[cityId] = lineData;
         setState(() {});
       }
     } catch (e) {
-      print('Error fetching line data for $stationId: $e');
-      // Handle error
+      AwesomeDialog(
+        context: context,
+        animType: AnimType.rightSlide,
+        title: '',
+        desc: "هناك مشكلة",
+        btnOkOnPress: () {},
+      ).show();
     }
   }
 
@@ -121,8 +135,11 @@ class _ReportPageState extends State<ReportPage> {
         second.isEmpty ||
         third.isEmpty ||
         digit.isEmpty ||
-        complaint.isEmpty) {
-      _showAlertDialog('الرجاء ادخال جميع نمرة السيارة والشكوى');
+        complaint.isEmpty ||
+        selectedCity == null ||
+        selectedLine == null) {
+      _showAlertDialog(
+          'الرجاء ادخال جميع نمرة السيارة والشكوى واختيار المواقف');
       return;
     }
 
@@ -133,7 +150,7 @@ class _ReportPageState extends State<ReportPage> {
           .get();
 
       if (mounted && carQuerySnapshot.docs.isEmpty) {
-        _showAlertDialog("نمرة السيارة غير صحيحه");
+        _showAlertDialog("نمرة السيارة غير صحيحة");
         return;
       }
 
@@ -146,6 +163,8 @@ class _ReportPageState extends State<ReportPage> {
         'timestamp': FieldValue.serverTimestamp(),
         'userId': _user.uid,
         'userName': userEmail ?? userPhoneNumber,
+        'startingLocation': selectedCity,
+        'endingLocation': selectedLine,
       });
 
       if (mounted) {
@@ -174,7 +193,11 @@ class _ReportPageState extends State<ReportPage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Center(child: Text('OK')),
+              child: const Center(
+                  child: Text(
+                'حسنا',
+                style: TextStyle(color: Colors.blue),
+              )),
             ),
           ],
         );
@@ -190,6 +213,8 @@ class _ReportPageState extends State<ReportPage> {
         _thirdController.clear();
         _digitController.clear();
         _complaintController.clear();
+        selectedCity = null;
+        selectedLine = null;
       });
     }
   }
@@ -218,6 +243,10 @@ class _ReportPageState extends State<ReportPage> {
                   'رقم السيارة:', messageData['carNumber'].toString()),
               _buildMessageText(
                   'محتوى الشكوى:', messageData['complaint'].toString()),
+              _buildMessageText(
+                  "ركبت من:", messageData['startingLocation'].toString()),
+              _buildMessageText(
+                  'رايح الي:', messageData['endingLocation'].toString()),
               _buildMessageText('الوقت:', formattedTime),
             ],
           ),
@@ -236,67 +265,63 @@ class _ReportPageState extends State<ReportPage> {
   }
 
   Widget _buildCarNumberInput() {
-    return Column(
-      children: [
-        Row(
-          children: [
-            _buildTextField('الارقام', _digitController, _digitFocusNode, 3,
-                TextInputType.number),
-            const SizedBox(width: 8),
-            _buildTextField('ثالث حرف', _thirdController, _thirdFocusNode, 1,
-                TextInputType.text),
-            const SizedBox(width: 8),
-            _buildTextField('ثاني حرف', _secondController, _secondFocusNode, 1,
-                TextInputType.text),
-            const SizedBox(width: 8),
-            _buildTextField('اول حرف', _firstController, _firstFocusNode, 1,
-                TextInputType.text),
-          ],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            if (stationName != null && stationName!.isNotEmpty)
-              DropdownButton<String>(
-                value: selectedStation,
-                hint: const Text('اختر موقفاً'),
-                onChanged: (String? newValue) {
-                  print('Selected Station: $newValue');
-                  setState(() {
-                    selectedStation = newValue;
-                    fetchDataForSelectedStation(newValue!);
-                  });
-                },
-                items: stationName!.map<DropdownMenuItem<String>>((doc) {
-                  return DropdownMenuItem<String>(
-                    value: doc['name'] as String?,
-                    child: Text(doc['name'] as String),
-                  );
-                }).toList(),
-              ),
-            if (selectedStation != null &&
-                lineAvailableMap.containsKey(selectedStation))
-              DropdownButton<String>(
-                value: selectedLine,
-                hint: const Text("اختر الخط"),
+    return Column(children: [
+      Row(
+        children: [
+          _buildTextField('الارقام', _digitController, _digitFocusNode, 3,
+              TextInputType.number),
+          const SizedBox(width: 8),
+          _buildTextField('ثالث حرف', _thirdController, _thirdFocusNode, 1,
+              TextInputType.text),
+          const SizedBox(width: 8),
+          _buildTextField('ثاني حرف', _secondController, _secondFocusNode, 1,
+              TextInputType.text),
+          const SizedBox(width: 8),
+          _buildTextField('اول حرف', _firstController, _firstFocusNode, 1,
+              TextInputType.text),
+        ],
+      ),
+      const SizedBox(height: 16),
+      Row(
+        children: [
+          Flexible(
+            child: SizedBox(
+              width: 200,
+              child: MyDropdownButton(
+                itemPrefix: 'موقف',
+                hint: 'اختر الموقف',
+                stationName: stationName
+                    .map<String>((doc) => doc['name'] as String)
+                    .toList(),
                 onChanged: (String? newValue) {
                   setState(() {
-                    selectedLine = newValue;
+                    selectedCity = newValue;
                   });
                 },
-                items: lineAvailableMap[selectedStation]
-                        ?.map<DropdownMenuItem<String>>((doc) {
-                      return DropdownMenuItem<String>(
-                        value: doc['nameLine'] as String?,
-                        child: Text(doc['nameLine'] as String),
-                      );
-                    }).toList() ??
-                    [],
               ),
-          ],
-        )
-      ],
-    );
+            ),
+          ),
+          const SizedBox(height: 16),
+          for (var station in stationName ?? [])
+            if (selectedCity == station["name"])
+              Flexible(
+                child: MyDropdownButton(
+                  itemPrefix: 'خط',
+                  hint: 'اختر الخط',
+                  stationName: lineAvailableMap[station.id]
+                          ?.map<String>((doc) => doc['nameLine'] as String)
+                          .toList() ??
+                      [],
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      selectedLine = newValue;
+                    });
+                  },
+                ),
+              )
+        ],
+      )
+    ]);
   }
 
   Widget _buildTextField(String labelText, TextEditingController controller,
@@ -443,6 +468,10 @@ class _ReportPageState extends State<ReportPage> {
         child: ListView(
           physics: const BouncingScrollPhysics(),
           children: [
+            const ConstantWidget(),
+            const SizedBox(
+              height: 10,
+            ),
             const SizedBox(height: 10),
             const Center(
               child: Text(

@@ -161,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
           String errorMsg = (stat).errorMsg;
 
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text("الكود الذي ادخلته غير صحيح",textAlign:TextAlign.end ),
+            content: Text("الكود الذي ادخلته غير صحيح"),
             backgroundColor: Colors.black,
             duration: Duration(seconds: 3),
           ));
