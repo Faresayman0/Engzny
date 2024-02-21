@@ -19,7 +19,7 @@ class _NavbarState extends State<Navbar> {
   Widget build(BuildContext context) {
     List<Widget> screens = [
        HomePage(),
-      const RatePage(),
+       RatePage(),
        const ReportPage(),
       const ProfilePage(),
     ];
