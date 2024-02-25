@@ -1,28 +1,55 @@
+// OtpScreen.dart
 import 'dart:async';
-
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:sms_autofill/sms_autofill.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gradution_project2/bussines_logic/cubit/phone_auth_cubit.dart';
 import 'package:gradution_project2/constant/my_color.dart';
 import 'package:gradution_project2/constant/strings.dart';
-import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:awesome_dialog/awesome_dialog.dart';
 
 class OtpScreen extends StatefulWidget {
-  final phoneNumber;
-  const OtpScreen({super.key, required this.phoneNumber});
+  String phoneNumber;
+
+  OtpScreen({Key? key, required this.phoneNumber}) : super(key: key);
+
   @override
   State<OtpScreen> createState() => _OtpScreenState();
 }
 
 class _OtpScreenState extends State<OtpScreen> {
   late String otpCode;
+  late StreamSubscription<String> _smsSubscription;
   int _start = 10;
   late Timer _timer;
   bool _timerExpired = false;
 
   GlobalKey<FormState> otpKey = GlobalKey();
   TextEditingController otpController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _listenForOTP();
+    startTimer();
+  }
+
+  @override
+  void dispose() {
+    _smsSubscription.cancel();
+    _timer.cancel();
+    super.dispose();
+  }
+
+  void _listenForOTP() async {
+    _smsSubscription = SmsAutoFill().code.listen((code) {
+      setState(() {
+        otpController.text = code;
+        otpCode = code;
+      });
+    });
+  }
 
   Widget _buildIntroTexts() {
     return Column(
@@ -48,7 +75,7 @@ class _OtpScreenState extends State<OtpScreen> {
                   color: Colors.black, fontSize: 18, height: 1.4),
               children: <TextSpan>[
                 TextSpan(
-                  text: '${widget.phoneNumber}',
+                  text: widget.phoneNumber,
                   style: TextStyle(color: MyColor.blue),
                 ),
               ],
@@ -92,7 +119,6 @@ class _OtpScreenState extends State<OtpScreen> {
         },
         appContext: context,
         autoFocus: true,
-        cursorColor: Colors.black,
         keyboardType: TextInputType.number,
         length: 6,
         obscureText: false,
@@ -125,6 +151,17 @@ class _OtpScreenState extends State<OtpScreen> {
     showProgressIndicator(context);
 
     if (otpCode.isEmpty) {
+      Navigator.pop(context); // Dismiss the progress indicator
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "الرجاء إدخال رمز التحقق",
+            textAlign: TextAlign.end,
+          ),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
       return;
     }
 
@@ -138,7 +175,6 @@ class _OtpScreenState extends State<OtpScreen> {
         onPressed: () {
           if ((otpKey.currentState!.validate())) {
             showProgressIndicator(context);
-
             _login(context);
           }
         },
@@ -180,27 +216,38 @@ class _OtpScreenState extends State<OtpScreen> {
           ).show().then((value) => Navigator.of(context)
               .pushNamedAndRemoveUntil(navBar, (route) => false));
         }
-        if (state is ErrorOccurred) {
-          Navigator.of(context).pushReplacementNamed("otpScreen");
 
+        if (state is ErrorOccurred) {
+          Navigator.pop(context); 
           String errorMsg = (state).errorMsg;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("الكود الذي ادخلته غير صحيح"),
-              backgroundColor: Colors.black,
-              duration: const Duration(seconds: 3),
-            ),
-          );
+
+          if (errorMsg == "Invalid OTP") {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  "رمز التحقق غير صحيح",
+                  textAlign: TextAlign.end,
+                ),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          } else if (errorMsg == "Invalid Phone Number") {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  "الرقم الذي ادخلته غير صحيح",
+                  textAlign: TextAlign.end,
+                ),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
         }
       },
       child: Container(),
     );
-  }
-
-  @override
-  void initState() {
-    startTimer();
-    super.initState();
   }
 
   void startTimer() {
@@ -220,12 +267,6 @@ class _OtpScreenState extends State<OtpScreen> {
         }
       },
     );
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
   }
 
   @override

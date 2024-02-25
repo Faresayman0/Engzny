@@ -157,7 +157,7 @@ class _ReportPageState extends State<ReportPage> {
       CollectionReference messages =
           FirebaseFirestore.instance.collection('messages');
 
-      await messages.add({
+      DocumentReference newDocRef = await messages.add({
         'carNumber': carNumber,
         'complaint': complaint,
         'timestamp': FieldValue.serverTimestamp(),
@@ -167,12 +167,22 @@ class _ReportPageState extends State<ReportPage> {
         'endingLocation': selectedLine,
       });
 
+      String documentId = newDocRef.id;
+
+      await newDocRef.update({'documentId': documentId});
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تم إرسال الشكوى بنجاح')),
+          const SnackBar(
+              backgroundColor: Colors.green,
+              content: Text(
+                'تم إرسال الشكوى بنجاح',
+                textAlign: TextAlign.end,
+              )),
         );
 
         _clearInputFields();
+        _resetDropdownValues();
       }
     } catch (e) {
       if (mounted) {
@@ -181,13 +191,20 @@ class _ReportPageState extends State<ReportPage> {
     }
   }
 
+  void _resetDropdownValues() {
+    setState(() {
+      selectedCity = null;
+      selectedLine = null;
+    });
+  }
+
   void _showAlertDialog(String message) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: Colors.white,
-          content: Text(message),
+          content: Text(message, textAlign: TextAlign.end),
           actions: [
             TextButton(
               onPressed: () {
@@ -248,6 +265,12 @@ class _ReportPageState extends State<ReportPage> {
               _buildMessageText(
                   'رايح الي:', messageData['endingLocation'].toString()),
               _buildMessageText('الوقت:', formattedTime),
+              IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () {
+                  _deleteComplaint(messageData);
+                },
+              ),
             ],
           ),
         ),
@@ -328,7 +351,6 @@ class _ReportPageState extends State<ReportPage> {
       FocusNode focusNode, int maxLength, TextInputType keyboardType) {
     return Expanded(
       child: TextField(
-        cursorColor: Colors.blue,
         controller: controller,
         textAlign: TextAlign.center,
         focusNode: focusNode,
@@ -374,7 +396,6 @@ class _ReportPageState extends State<ReportPage> {
 
   Widget _buildComplaintInput() {
     return TextField(
-      cursorColor: Colors.blue,
       maxLines: 2,
       controller: _complaintController,
       textAlign: TextAlign.right,
@@ -457,6 +478,40 @@ class _ReportPageState extends State<ReportPage> {
         ),
       ],
     );
+  }
+
+  void _deleteComplaint(Map<String, dynamic> messageData) async {
+    try {
+      String documentId = messageData['documentId'];
+
+      CollectionReference messagesRef =
+          FirebaseFirestore.instance.collection('messages');
+
+      QuerySnapshot<Map<String, dynamic>> querySnapshot = await messagesRef
+          .where('documentId', isEqualTo: documentId)
+          .get() as QuerySnapshot<Map<String, dynamic>>;
+
+      for (QueryDocumentSnapshot<Map<String, dynamic>> documentSnapshot
+          in querySnapshot.docs) {
+        await documentSnapshot.reference.delete();
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            backgroundColor: Colors.green,
+            content: Text(
+              'تم حذف الشكوى بنجاح',
+              textAlign: TextAlign.end,
+            )),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            backgroundColor: Colors.red,
+            content:
+                Text('حدث خطأ أثناء حذف الشكوى', textAlign: TextAlign.end)),
+      );
+    }
   }
 
   @override

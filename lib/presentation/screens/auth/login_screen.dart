@@ -51,7 +51,6 @@ class _LoginScreenState extends State<LoginScreen> {
             child: TextFormField(
               maxLength: 11,
               controller: phoneController,
-              cursorColor: Colors.blue,
               style: const TextStyle(fontSize: 18, letterSpacing: 2),
               autofocus: true,
               keyboardType: TextInputType.phone,
@@ -161,8 +160,11 @@ class _LoginScreenState extends State<LoginScreen> {
           String errorMsg = (stat).errorMsg;
 
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text("الكود الذي ادخلته غير صحيح"),
-            backgroundColor: Colors.black,
+            content: Text(
+              "الرقم الذي ادخلته غير صحيح",
+              textAlign: TextAlign.end,
+            ),
+            backgroundColor: Colors.red,
             duration: Duration(seconds: 3),
           ));
         }
@@ -171,6 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+   /// كمل باقي الكود
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -204,3 +207,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+

@@ -7,8 +7,6 @@ import 'package:gradution_project2/bussines_logic/cubit/phone_auth_cubit.dart';
 import 'package:gradution_project2/constant/strings.dart';
 import 'package:gradution_project2/firebase_options.dart';
 
-import 'package:gradution_project2/presentation/widgets/navbar.dart';
-
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -32,10 +30,11 @@ void main(List<String> args) async {
   });
 }
 
-class GraduationProject extends StatefulWidget {
+class GraduationProject extends StatelessWidget {
   final AppRouter appRouter;
   final PhoneAuthCubit phoneAuthCubit;
   final String initialRoute;
+
   const GraduationProject({
     super.key,
     required this.appRouter,
@@ -44,27 +43,20 @@ class GraduationProject extends StatefulWidget {
   });
 
   @override
-  State<GraduationProject> createState() => _GraduationProjectState();
-}
-
-class _GraduationProjectState extends State<GraduationProject> {
-  @override
   Widget build(BuildContext context) {
     return BlocProvider<PhoneAuthCubit>.value(
-      value: widget.phoneAuthCubit,
+      value: phoneAuthCubit,
       child: MaterialApp(
         theme: ThemeData(
-          fontFamily: "LamaSans",
-          primaryColor: Colors.blue,
-        ),
+            fontFamily: "LamaSans",
+            primaryColor: Colors.blue,
+            textSelectionTheme: const TextSelectionThemeData(
+                selectionColor: Colors.blue,
+                cursorColor: Colors.blue,
+                selectionHandleColor: Colors.blue)),
         debugShowCheckedModeBanner: false,
-        home: BlocBuilder<PhoneAuthCubit, PhoneAuthState>(
-          builder: (context, state) {
-            return const Navbar();
-          },
-        ),
-        onGenerateRoute: widget.appRouter.generateRoute,
-        initialRoute: widget.initialRoute,
+        initialRoute: initialRoute,
+        onGenerateRoute: appRouter.generateRoute,
       ),
     );
   }
