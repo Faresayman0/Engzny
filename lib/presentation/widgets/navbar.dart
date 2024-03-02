@@ -1,9 +1,11 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:gradution_project2/presentation/screens/pages/home_page.dart';
 import 'package:gradution_project2/presentation/screens/pages/profie_page.dart';
 import 'package:gradution_project2/presentation/screens/pages/rate_page.dart';
 import 'package:gradution_project2/presentation/screens/pages/report_page.dart';
+import 'package:gradution_project2/presentation/screens/pages/transport_details.dart';
+
+import '../screens/pages/home_page.dart';
 
 class Navbar extends StatefulWidget {
   const Navbar({super.key});
@@ -18,9 +20,10 @@ class _NavbarState extends State<Navbar> {
   @override
   Widget build(BuildContext context) {
     List<Widget> screens = [
-       HomePage(),
-       RatePage(),
-       const ReportPage(),
+      const HomePage(),
+      const TransportDetails(),
+      const RatePage(),
+      const ReportPage(),
       const ProfilePage(),
     ];
 
@@ -35,7 +38,6 @@ class _NavbarState extends State<Navbar> {
           return true;
         }
       },
-      
       child: Scaffold(
         bottomNavigationBar: CurvedNavigationBar(
           animationDuration: const Duration(milliseconds: 600),
@@ -46,6 +48,7 @@ class _NavbarState extends State<Navbar> {
           index: currentIndex,
           items: const [
             Icon(Icons.home_outlined, size: 30),
+            Icon(Icons.location_on_outlined, size: 30),
             Icon(Icons.star_border, size: 30),
             Icon(Icons.announcement_outlined, size: 30),
             Icon(Icons.person_2_outlined, size: 30),
@@ -58,7 +61,6 @@ class _NavbarState extends State<Navbar> {
         ),
         body: screens[currentIndex],
       ),
-      
     );
   }
 }

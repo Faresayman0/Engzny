@@ -1,11 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class RatingWidget extends StatefulWidget {
-  const RatingWidget({Key? key}) : super(key: key);
+  const RatingWidget({super.key});
 
   @override
   _RatingWidgetState createState() => _RatingWidgetState();
@@ -47,7 +46,7 @@ class _RatingWidgetState extends State<RatingWidget> {
     _thirdFocusNode = FocusNode();
     _digitFocusNode = FocusNode();
 
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_firstFocusNode);
     });
   }
@@ -180,17 +179,6 @@ class _RatingWidgetState extends State<RatingWidget> {
       textAlign: TextAlign.center,
       keyboardType: isDigit ? TextInputType.number : TextInputType.text,
       onChanged: (value) {
-        setState(() {
-          if (isDigit) {
-            _carNumberDigits = value;
-          } else {
-            _carNumberLetters = '';
-            for (var entry in _controllers.entries) {
-              _carNumberLetters += entry.value.text;
-            }
-          }
-        });
-
         if (value.length == maxLength) {
           if (nextFocusNode != null) {
             _moveToNextField(nextFocusNode);
@@ -217,8 +205,16 @@ class _RatingWidgetState extends State<RatingWidget> {
         minimumSize: const Size(double.infinity, 40),
       ),
       onPressed: () async {
-        if ((_carNumberLetters.length == 3 || _carNumberLetters.length == 2) &&
-            (_carNumberDigits.length == 3 || _carNumberDigits.length == 2)) {
+        // Check if all fields are filled
+        bool allFieldsFilled = _controllers.values
+            .every((controller) => controller.text.trim().isNotEmpty);
+
+        if (allFieldsFilled) {
+          _carNumberLetters = '';
+          for (var entry in _controllers.entries) {
+            _carNumberLetters += entry.value.text;
+          }
+
           String carNumber = '$_carNumberLetters$_carNumberDigits';
           await checkCarExistenceAndAddRating(carNumber);
           _firstController.selection = const TextSelection.collapsed(offset: 0);
@@ -239,24 +235,32 @@ class _RatingWidgetState extends State<RatingWidget> {
     FocusScope.of(context).requestFocus(focusNode);
   }
 
- Future<void> checkCarExistenceAndAddRating([String? carNumber]) async {
-  carNumber ??= '$_carNumberLetters$_carNumberDigits';
+  Future<void> checkCarExistenceAndAddRating([String? carNumber]) async {
+    carNumber ??= '$_carNumberLetters$_carNumberDigits';
 
-  try {
-    var querySnapshot = await _firestore
-        .collection('AllCars')
-        .where('numberOfCar', isEqualTo: carNumber)
-        .get();
+    try {
+      var querySnapshot = await _firestore
+          .collection('AllCars')
+          .where('numberOfCar', isEqualTo: carNumber)
+          .get();
 
-    if (querySnapshot.docs.isNotEmpty) {
-      // القيام بإضافة التقييم إذا كانت النمرة موجودة
-      var carDocument = querySnapshot.docs.first;
-      var data = carDocument.data();
-      if (data != null) {
+      if (querySnapshot.docs.isNotEmpty) {
+        var carDocument = querySnapshot.docs.first; // Define carDocument here
+        var data = carDocument.data();
         List<dynamic>? ratedUserIds = data['userIds'];
 
-        if (ratedUserIds != null && ratedUserIds.contains(FirebaseAuth.instance.currentUser?.uid)) {
-          showRatedBeforeDialog();
+        if (ratedUserIds != null &&
+            ratedUserIds.contains(FirebaseAuth.instance.currentUser?.uid)) {
+          _resetFields();
+          return;
+        }
+
+        String userId = FirebaseAuth.instance.currentUser!.uid; // Get user ID
+
+        if (data['userRatings'] != null &&
+            data['userRatings'][userId] != null) {
+          // المستخدم موجود بالفعل، يمكنك عرض رسالة تطلب تحديث التقييم
+          showUpdateRatingDialog(carDocument.id);
           return;
         }
 
@@ -266,69 +270,12 @@ class _RatingWidgetState extends State<RatingWidget> {
           await addRatingField(carDocument.id);
         }
       } else {
-        print('Data is null');
+        showCarNotFoundErrorDialog(carNumber);
       }
-    } else {
-      // عرض رسالة بأن النمرة غير موجودة
-      showCarNotFoundErrorDialog(carNumber);
-    }
-  } catch (error) {
-    print('Error checking car existence: $error');
-  }
-}
-
-void showCarNotFoundErrorDialog(String carNumber) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('خطأ'),
-        content: Text('نمرة السيارة $carNumber غير موجودة.'),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _resetFields();
-            },
-            child: const Text(
-              'حسنا',
-              style: TextStyle(color: Colors.black),
-            ),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-Future<void> addNewRating(String carNumber) async {
-  await _firestore.collection('AllCars').doc().set({
-    'numberOfCar': carNumber,
-    'rating': _rating,
-    'numberOfRatings': 1,
-    'averageRating': _rating,
-    'timestamp': FieldValue.serverTimestamp(),
-    'userIds': [FirebaseAuth.instance.currentUser?.uid],
-  });
-
-  showSuccessDialog(_rating);
-}
-
-Future<void> addRatingField(String documentId) async {
-  try {
-    await _firestore.collection('AllCars').doc(documentId).set({
-      'rating': _rating,
-      'numberOfRatings': 1,
-      'averageRating': _rating.toStringAsFixed(1),
-      'userIds': [FirebaseAuth.instance.currentUser?.uid],
-    }, SetOptions(merge: true));
-  } catch (error) {
-    print('Error adding rating field: $error');
+    } catch (error) {}
   }
 
-  showSuccessDialog(_rating);
-}
-
+// دالة تحديث التقييم
   Future<void> updateExistingRating(String documentId) async {
     await _firestore.runTransaction((transaction) async {
       var documentSnapshot = await transaction.get(
@@ -336,28 +283,117 @@ Future<void> addRatingField(String documentId) async {
       );
 
       if (documentSnapshot.exists) {
-        double currentRating = documentSnapshot['rating'] ?? 0.0;
-        int numberOfRatings = documentSnapshot['numberOfRatings'] ?? 0;
+        Map<String, dynamic> data = documentSnapshot.data()!;
+        double currentRating = data['rating'] ?? 0.0;
+        int numberOfRatings = data['numberOfRatings'] ?? 0;
+        Map<String, dynamic> userRatings =
+            Map<String, dynamic>.from(data['userRatings']);
 
-        double newTotalRating = currentRating + _rating;
-        int newNumberOfRatings = numberOfRatings + 1;
+        double newUserRating = _rating;
 
-        double averageRating = newTotalRating / newNumberOfRatings;
+        String userId = FirebaseAuth.instance.currentUser!.uid; // Get user ID
+
+        if (userRatings.containsKey(userId)) {
+          double oldUserRating = userRatings[userId];
+          currentRating -= oldUserRating;
+        } else {
+          numberOfRatings++;
+        }
+
+        userRatings[userId] = newUserRating; // Store user ID along with rating
+
+        double newTotalRating = currentRating + newUserRating;
+
+        double newAverageRating = newTotalRating / numberOfRatings;
 
         transaction.update(
           _firestore.collection('AllCars').doc(documentId),
           {
             'rating': newTotalRating,
-            'numberOfRatings': newNumberOfRatings,
-            'averageRating': averageRating.toStringAsFixed(1),
-            'userIds':
-                FieldValue.arrayUnion([FirebaseAuth.instance.currentUser?.uid]),
+            'numberOfRatings': numberOfRatings,
+            'averageRating': newAverageRating.toStringAsFixed(1),
+            'userRatings': userRatings,
           },
         );
 
-        showSuccessDialog(averageRating);
+        showSuccessDialog(newAverageRating);
       }
     });
+  }
+
+  Future<void> addRatingField(String documentId) async {
+    try {
+      String userId = FirebaseAuth.instance.currentUser!.uid;
+      await _firestore.collection('AllCars').doc(documentId).set({
+        'rating': _rating,
+        'numberOfRatings': 1,
+        'averageRating': _rating.toStringAsFixed(1),
+        'userRatings': {
+          userId: _rating,
+        },
+      }, SetOptions(merge: true));
+    } catch (error) {}
+
+    showSuccessDialog(_rating);
+  }
+
+  void showUpdateRatingDialog(String documentId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('تقييم سابق'),
+          content: const Text(
+              'لقد قمت بتقييم هذه السيارة مسبقًا، هل تريد تحديث التقييم؟'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                updateExistingRating(documentId);
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'نعم',
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _resetFields();
+              },
+              child: const Text(
+                'لا',
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void showCarNotFoundErrorDialog(String carNumber) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('خطأ'),
+          content: Text('نمرة السيارة $carNumber غير موجودة.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _resetFields();
+              },
+              child: const Text(
+                'حسنا',
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void showSuccessDialog(double averageRating) {
@@ -386,30 +422,6 @@ Future<void> addRatingField(String documentId) async {
     );
   }
 
-  void showRatedBeforeDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('خطأ'),
-          content: const Text("لا يمكنك تقييم نفس السيارة اكثر من مره"),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text(
-                'حسنا',
-                style: TextStyle(color: Colors.black),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
- 
   void showValidationDialog() {
     showDialog(
       context: context,

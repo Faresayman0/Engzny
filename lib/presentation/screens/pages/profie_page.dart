@@ -131,7 +131,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     },
                     icon: const Icon(Icons.people, color: Colors.white),
                     label: const Text(
-                      "about us",
+                      "Contact Us",
                       style: TextStyle(color: Colors.white, fontSize: 18),
                     ),
                   ),

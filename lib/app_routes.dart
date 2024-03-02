@@ -4,7 +4,7 @@ import 'package:gradution_project2/bussines_logic/cubit/phone_auth_cubit.dart';
 import 'package:gradution_project2/constant/strings.dart';
 import 'package:gradution_project2/presentation/screens/auth/login_screen.dart';
 import 'package:gradution_project2/presentation/screens/auth/otp_screen.dart';
-import 'package:gradution_project2/presentation/screens/pages/chose_login.dart';
+import 'package:gradution_project2/presentation/screens/pages/choselogin.dart';
 import 'package:gradution_project2/presentation/screens/pages/home_page.dart';
 import 'package:gradution_project2/presentation/screens/pages/splash_screen.dart';
 import 'package:gradution_project2/presentation/widgets/navbar.dart';
@@ -21,7 +21,7 @@ class AppRouter {
         return MaterialPageRoute(
             builder: (_) => BlocProvider<PhoneAuthCubit>.value(
                   value: phoneAuthCubit!,
-                  child: const HomePage(),
+                  child:  HomePage(),
                 ));
       case loginScreen:
         return MaterialPageRoute(
@@ -31,7 +31,7 @@ class AppRouter {
                 ));
 
       case otpScreen:
-        final phoneNumber = settings.arguments as String;
+        final phoneNumber = settings.arguments;
         return MaterialPageRoute(
             builder: (_) => BlocProvider.value(
                   value: phoneAuthCubit!,

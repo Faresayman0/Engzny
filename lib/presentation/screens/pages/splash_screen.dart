@@ -1,7 +1,7 @@
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:gradution_project2/presentation/screens/pages/chose_login.dart';
+import 'package:gradution_project2/presentation/screens/pages/choselogin.dart';
 import 'package:gradution_project2/presentation/widgets/navbar.dart';
 import 'package:page_transition/page_transition.dart';
 

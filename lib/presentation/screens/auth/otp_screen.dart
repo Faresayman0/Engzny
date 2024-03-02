@@ -1,6 +1,6 @@
-// OtpScreen.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,9 +10,8 @@ import 'package:gradution_project2/constant/strings.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 
 class OtpScreen extends StatefulWidget {
-  String phoneNumber;
-
-  OtpScreen({Key? key, required this.phoneNumber}) : super(key: key);
+  final phoneNumber;
+  const OtpScreen({super.key, required this.phoneNumber});
 
   @override
   State<OtpScreen> createState() => _OtpScreenState();
@@ -24,15 +23,19 @@ class _OtpScreenState extends State<OtpScreen> {
   int _start = 10;
   late Timer _timer;
   bool _timerExpired = false;
+  bool _isLoading = false;
 
   GlobalKey<FormState> otpKey = GlobalKey();
   TextEditingController otpController = TextEditingController();
+  final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
 
   @override
   void initState() {
     super.initState();
     _listenForOTP();
     startTimer();
+
   }
 
   @override
@@ -41,15 +44,18 @@ class _OtpScreenState extends State<OtpScreen> {
     _timer.cancel();
     super.dispose();
   }
+@override
 
-  void _listenForOTP() async {
-    _smsSubscription = SmsAutoFill().code.listen((code) {
-      setState(() {
-        otpController.text = code;
-        otpCode = code;
-      });
+
+void _listenForOTP() async {
+  _smsSubscription = SmsAutoFill().code.listen((code) {
+    setState(() {
+      otpController.text = code;
+      otpCode = code;
     });
-  }
+  });
+}
+
 
   Widget _buildIntroTexts() {
     return Column(
@@ -75,7 +81,7 @@ class _OtpScreenState extends State<OtpScreen> {
                   color: Colors.black, fontSize: 18, height: 1.4),
               children: <TextSpan>[
                 TextSpan(
-                  text: widget.phoneNumber,
+                  text: '${widget.phoneNumber}',
                   style: TextStyle(color: MyColor.blue),
                 ),
               ],
@@ -87,24 +93,9 @@ class _OtpScreenState extends State<OtpScreen> {
   }
 
   void showProgressIndicator(BuildContext context) {
-    AlertDialog alertDialog = const AlertDialog(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      content: Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-        ),
-      ),
-    );
-
-    showDialog(
-      barrierColor: Colors.white.withOpacity(0),
-      barrierDismissible: false,
-      context: context,
-      builder: (context) {
-        return alertDialog;
-      },
-    );
+    setState(() {
+      _isLoading = true;
+    });
   }
 
   Widget _buildPinCodeFields(BuildContext context) {
@@ -151,17 +142,6 @@ class _OtpScreenState extends State<OtpScreen> {
     showProgressIndicator(context);
 
     if (otpCode.isEmpty) {
-      Navigator.pop(context); // Dismiss the progress indicator
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "الرجاء إدخال رمز التحقق",
-            textAlign: TextAlign.end,
-          ),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ),
-      );
       return;
     }
 
@@ -200,11 +180,15 @@ class _OtpScreenState extends State<OtpScreen> {
       },
       listener: (context, state) {
         if (state is Loading) {
-          showProgressIndicator(context);
+          setState(() {
+            _isLoading = true;
+          });
         }
 
         if (state is PhoneOTPVerified) {
-          Navigator.pop(context);
+          setState(() {
+            _isLoading = false;
+          });
 
           AwesomeDialog(
             context: context,
@@ -216,34 +200,21 @@ class _OtpScreenState extends State<OtpScreen> {
           ).show().then((value) => Navigator.of(context)
               .pushNamedAndRemoveUntil(navBar, (route) => false));
         }
-
         if (state is ErrorOccurred) {
-          Navigator.pop(context); 
-          String errorMsg = (state).errorMsg;
+          setState(() {
+            _isLoading = false;
+          });
 
-          if (errorMsg == "Invalid OTP") {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  "رمز التحقق غير صحيح",
-                  textAlign: TextAlign.end,
-                ),
-                backgroundColor: Colors.red,
-                duration: Duration(seconds: 3),
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                "الكود الذي ادخلته غير صحيح",
+                textAlign: TextAlign.end,
               ),
-            );
-          } else if (errorMsg == "Invalid Phone Number") {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  "الرقم الذي ادخلته غير صحيح",
-                  textAlign: TextAlign.end,
-                ),
-                backgroundColor: Colors.red,
-                duration: Duration(seconds: 3),
-              ),
-            );
-          }
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 3),
+            ),
+          );
         }
       },
       child: Container(),
@@ -274,39 +245,52 @@ class _OtpScreenState extends State<OtpScreen> {
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 88),
-          child: ListView(
-            children: [
-              Form(
-                key: otpKey,
-                child: Column(
-                  children: [
-                    _buildIntroTexts(),
-                    const SizedBox(
-                      height: 88,
-                    ),
-                    _buildPinCodeFields(context),
-                    if (_timerExpired)
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text(
-                          "تعديل رقم الهاتف",
-                          style: TextStyle(color: Colors.blue),
+        body: Stack(
+          children: [
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 88),
+              child: ListView(
+                children: [
+                  Form(
+                    key: otpKey,
+                    child: Column(
+                      children: [
+                        _buildIntroTexts(),
+                        const SizedBox(
+                          height: 88,
                         ),
-                      ),
-                    const SizedBox(
-                      height: 60,
+                        _buildPinCodeFields(context),
+                        if (_timerExpired)
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text(
+                              "تعديل رقم الهاتف",
+                              style: TextStyle(color: Colors.blue),
+                            ),
+                          ),
+                        const SizedBox(
+                          height: 60,
+                        ),
+                        _buildVrifyButton(context),
+                        _buildPhoneVerificationBloc(),
+                      ],
                     ),
-                    _buildVrifyButton(context),
-                    _buildPhoneVerificationBloc(),
-                  ],
+                  ),
+                ],
+              ),
+            ),
+            if (_isLoading)
+              Container(
+                color: Colors.black.withOpacity(0.5),
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                  ),
                 ),
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );

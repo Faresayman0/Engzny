@@ -67,6 +67,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   return "ادخل رقم هاتفك";
                 } else if (value.length < 11) {
                   return "اكمل باقي الرقم";
+                } else if (!isValidPhoneNumber(value)) {
+                  return "الرقم غير صالح";
                 }
 
                 return null;
@@ -90,8 +92,13 @@ class _LoginScreenState extends State<LoginScreen> {
     return flag;
   }
 
+  bool isValidPhoneNumber(String value) {
+    return RegExp(r'^01\d{9}$').hasMatch(value);
+  }
+
   Future<void> _register(BuildContext context) async {
     if (!phoneFormKey.currentState!.validate()) {
+    
       Navigator.pop(context);
     } else {
       Navigator.pop(context);
@@ -155,25 +162,11 @@ class _LoginScreenState extends State<LoginScreen> {
             arguments: phoneNumber,
           );
         }
-        if (stat is ErrorOccurred) {
-          Navigator.pop(context);
-          String errorMsg = (stat).errorMsg;
-
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text(
-              "الرقم الذي ادخلته غير صحيح",
-              textAlign: TextAlign.end,
-            ),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
-          ));
-        }
       },
       child: Container(),
     );
   }
 
-   /// كمل باقي الكود
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -207,4 +200,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-

@@ -1,7 +1,23 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-part 'phone_auth_state.dart';
+
+
+abstract class PhoneAuthState {}
+
+class PhoneAuthInitial extends PhoneAuthState {}
+
+class Loading extends PhoneAuthState {}
+
+class ErrorOccurred extends PhoneAuthState {
+  final String errorMsg;
+
+  ErrorOccurred({required this.errorMsg});
+}
+
+class PhoneNumberSubmited extends PhoneAuthState {}
+
+class PhoneOTPVerified extends PhoneAuthState {}
 
 class PhoneAuthCubit extends Cubit<PhoneAuthState> {
   late String verificationId;
@@ -18,7 +34,6 @@ class PhoneAuthCubit extends Cubit<PhoneAuthState> {
       verificationFailed: verificationFailed,
       codeSent: codeSent,
       codeAutoRetrievalTimeout: codeAutoRetrievalTimeout,
-      
     );
   }
 
@@ -35,12 +50,13 @@ class PhoneAuthCubit extends Cubit<PhoneAuthState> {
     emit(PhoneNumberSubmited());
   }
 
-  void codeAutoRetrievalTimeout(String verificationId) {
-  }
+  void codeAutoRetrievalTimeout(String verificationId) {}
 
   Future<void> submitOTP(String otpCode) async {
     PhoneAuthCredential credential = PhoneAuthProvider.credential(
-        verificationId: verificationId, smsCode: otpCode);
+      verificationId: verificationId,
+      smsCode: otpCode,
+    );
 
     await signIn(credential);
   }

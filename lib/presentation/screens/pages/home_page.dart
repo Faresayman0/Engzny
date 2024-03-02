@@ -1,7 +1,7 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
+
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,9 +14,8 @@ import 'package:gradution_project2/bussines_logic/cubit/phone_auth_cubit.dart';
 import 'package:gradution_project2/constant/strings.dart';
 import 'package:gradution_project2/presentation/screens/components/drop_down.dart';
 import 'package:gradution_project2/presentation/widgets/constant_widget.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -362,53 +361,51 @@ class _HomePageState extends State<HomePage> {
           )
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.blue,
-        onPressed: () async {
-          setState(() {
-            isLoading = true; // Set loading state to true
-          });
+  floatingActionButton: FloatingActionButton.extended(
+  backgroundColor: Colors.blue,
+  onPressed: () async {
+    setState(() {
+      isLoading = true;
+    });
 
-          await getCurrentLocation();
+    // عرض شاشة التحميل فورًا
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              color: Colors.transparent,
+            ),
+            const CircularProgressIndicator(
+              color: Colors.blue,
+            ),
+          ],
+        );
+      },
+    );
 
-          if (_currentLocation.latitude != 0.0 &&
-              _currentLocation.longitude != 0.0) {
-            // Show CircularProgressIndicator overlay
-            showDialog(
-              context: context,
-              barrierDismissible:
-                  false, // Prevent dismissing by tapping outside
-              builder: (BuildContext context) {
-                return Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      color: Colors.transparent,
-                    ),
-                    const CircularProgressIndicator(
-                      color: Colors.blue,
-                    ),
-                  ],
-                );
-              },
-            );
+    // احصل على الموقع الحالي
+    await getCurrentLocation();
 
-            await getCurrentLocation();
-            if (_currentLocation.latitude != 0.0 &&
-                _currentLocation.longitude != 0.0) {
-              _showNearestStationDialog();
-            }
+    if (_currentLocation.latitude != 0.0 && _currentLocation.longitude != 0.0) {
+      // إخفاء شاشة التحميل
+      Navigator.of(context).pop();
 
-            setState(() {
-              isLoading = false;
-            });
+      // عرض شاشة الحوار بعد الانتهاء من الحصول على الموقع
+      _showNearestStationDialog();
+    }
 
-            Navigator.of(context, rootNavigator: true).pop();
-          }
-        },
-        label: const Text("اقرب موقف لك"),
-      ),
-      body: Padding(
+    // قم بتحديث isLoading لإخفاء شاشة التحميل
+    setState(() {
+      isLoading = false;
+    });
+  },
+  label: const Text("اقرب موقف لك"),
+),
+    body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -435,7 +432,7 @@ class _HomePageState extends State<HomePage> {
                         setState(() {
                           selectedCity = newValue;
                         });
-                      }, 
+                      },
                     ),
                   const SizedBox(height: 20),
                   for (var station in stationName ?? [])
